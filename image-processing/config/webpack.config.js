@@ -333,6 +333,13 @@ module.exports = function (webpackEnv) {
           babelRuntimeRegenerator,
         ]),
       ],
+      // JAH -->
+      fallback: {
+        fs: false,
+        path: false,
+        crypto: false
+      },
+      // <-- JAH
     },
     module: {
       strictExportPresence: true,
