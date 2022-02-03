@@ -1,0 +1,1 @@
+export { canvas } from './core/canvas';

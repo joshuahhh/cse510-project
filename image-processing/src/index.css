@@ -5,9 +5,57 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100vh;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+
+
+.filter {
+  background: hsl(30,100%,97%);
+  box-shadow: 0px 2px 4px 3px rgba(0, 0, 0, 0.2);
+}
+
+.card {
+  margin: 10px;
+  padding: 10px;
+
+  display: flex;
+  position: relative;
+}
+
+.card-left {
+  flex: 1;
+}
+
+.card-right {
+  flex: 1;
+}
+
+.chrome-picker {
+  display: inline-block;
+}
+
+.App {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+html, body, #root {
+  overflow: hidden;
+  margin: 0;
+}
+
+#root {
+  height: 100%;
+}
+
+.scroller {
+  overflow-y: auto;
+  height: 100%;
 }
