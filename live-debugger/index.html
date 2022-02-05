@@ -513,6 +513,7 @@ textarea {
     const b = board()
     document.body.appendChild(b)
     handlers(b)
+    b.applyUserInput()
 
     // let input = { a: 42 }
     // console.log('calling debugger')
