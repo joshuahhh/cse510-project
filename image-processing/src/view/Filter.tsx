@@ -1,36 +1,30 @@
 import React, { useEffect } from 'react';
-import { FilterParameterSpec, filterSpecByName, FilterUse, NumberParameterSpec } from './filters';
+import { filterSpecByName, FilterUse, NumberParameterSpec } from '../model/filters';
 import { ChromePicker } from 'react-color';
 
-import * as glfx from './glfx/lib'
+import * as glfx from '../glfx/lib'
 
 interface Props {
   filterUse: FilterUse,
   setFilterUse: (newFilterUse: FilterUse) => void,
 
-  setCanvas: (canvas: HTMLCanvasElement) => void,
-
   deleteMe: () => void,
+
+  canvas: HTMLCanvasElement | undefined,
 }
 
-function Filter({filterUse, setFilterUse, setCanvas, deleteMe}: Props) {
-  const canvasRef = React.useRef<any>();
-  if (!canvasRef.current) {
-    canvasRef.current = glfx.canvas();
-  }
-  useEffect(() => {
-    setCanvas(canvasRef.current);
-  }, []);
+function Filter({filterUse, setFilterUse, deleteMe, canvas}: Props) {
+  const [canvasContainer, setCanvasContainer] = React.useState<HTMLDivElement | null>(null)
+
+  React.useEffect(() => {
+    if (canvas && canvasContainer) {
+      canvasContainer.appendChild(canvas);
+    }
+  }, [canvas, canvasContainer])
 
   const filterSpec = filterSpecByName(filterUse.specName);
   if (!filterSpec) {
     return <div className="Error">cannot find filter with key <pre>{filterUse.specName}</pre></div>;
-  }
-
-  function handleCanvasContainer(node: HTMLDivElement | null) {
-    if (node) {
-      node.appendChild(canvasRef.current);
-    }
   }
 
   return <div className="card filter">
@@ -57,7 +51,7 @@ function Filter({filterUse, setFilterUse, setCanvas, deleteMe}: Props) {
       )}
     </div>
     <div className="card-right">
-      <div ref={handleCanvasContainer}></div>
+      <div ref={setCanvasContainer}></div>
     </div>
     <div style={{position: 'absolute', right: 30}} onClick={deleteMe}>
       <button>❌</button>

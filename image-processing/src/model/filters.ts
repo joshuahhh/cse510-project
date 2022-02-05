@@ -118,3 +118,5 @@ export function newFilterUse(specName: string): FilterUse {
         parameterValues: Object.fromEntries(spec.parameters.map((parameter) => [parameter.name, parameter.default])),
     }
 }
+
+export type FilterChain = FilterUse[];

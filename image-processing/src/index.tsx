@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
+import './view/style.css';
+import FilterChainEditor from './view/FilterChainEditor';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <FilterChainEditor />
   </React.StrictMode>,
   document.getElementById('root')
 );

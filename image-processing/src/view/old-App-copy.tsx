@@ -5,7 +5,7 @@ import Webcam from 'react-webcam';
 // import Image from "image-js";
 import './App.css';
 
-import * as glfx from './glfx/lib'
+import * as glfx from '../glfx/lib'
 
 
 function useInterval(callback: () => void, delay: number | null) {
