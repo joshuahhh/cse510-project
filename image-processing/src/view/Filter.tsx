@@ -1,8 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { filterSpecByName, FilterUse, NumberParameterSpec } from '../model/filters';
 import { ChromePicker } from 'react-color';
-
-import * as glfx from '../glfx/lib'
 
 interface Props {
   filterUse: FilterUse,

@@ -1,7 +1,7 @@
 import React from 'react';
 import Webcam from 'react-webcam';
 import Filter from './Filter';
-import { filterSpecByName, filterSpecs, FilterUse, newFilterUse } from '../model/filters';
+import { filterSpecs, FilterUse, newFilterUse } from '../model/filters';
 import useInterval from './useInterval';
 import * as cv from '@techstark/opencv-js';
 import FilterChainRunner from '../model/FilterChainRunner';
