@@ -1,5 +1,6 @@
 import { FilterChain, filterSpecByName } from "./filters";
 import * as glfx from '../glfx/lib'
+import { GlfxCanvas, GlfxTexture } from "../glfx/lib";
 
 // A FilterChain is the "spec of" / "code for" a filter chain. It gets serialized.
 // A FilterChainRunner actually runs it. It also maintains runtime state so that a FilterChain can be run efficiently.
@@ -34,7 +35,7 @@ export default class FilterChainRunner {
     updateGlfxResources(filterUseId: string, textureSource: HTMLVideoElement | HTMLCanvasElement): GlfxResources {
         let glfxResources = this._glfxResourcesById[filterUseId]
         if (!glfxResources) {
-            const canvas: any = glfx.canvas();
+            const canvas = glfx.canvas();
             const texture = canvas.texture(textureSource);
             glfxResources = { canvas, texture };
             this._glfxResourcesById[filterUseId] = glfxResources;
@@ -57,6 +58,6 @@ export default class FilterChainRunner {
 }
 
 interface GlfxResources {
-    canvas: any,   // from glfx; we don't have types
-    texture: any,  // from glfx; we don't have types
+    canvas: GlfxCanvas,
+    texture: GlfxTexture,
 }
