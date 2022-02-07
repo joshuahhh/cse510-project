@@ -13,7 +13,7 @@ interface Props {
 
   result: Result | undefined,
 
-  originalImage: HTMLVideoElement | undefined;
+  originalImage: HTMLVideoElement | HTMLCanvasElement | undefined;
 }
 
 function Filter({filterUse, setFilterUse, deleteMe, result, originalImage}: Props) {

@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './view/style.css';
-import FilterChainEditor from './view/FilterChainEditor';
+import DemoEmbed from './view/DemoEmbed';
 
 ReactDOM.render(
   <React.StrictMode>
-    <FilterChainEditor />
+    <DemoEmbed />
   </React.StrictMode>,
   document.getElementById('root')
 );
