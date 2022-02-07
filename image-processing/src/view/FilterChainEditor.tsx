@@ -3,21 +3,21 @@ import Webcam from 'react-webcam';
 import Filter from './Filter';
 import { filterSpecs, FilterUse, newFilterUse } from '../model/filters';
 import useInterval from './useInterval';
-import * as cv from '@techstark/opencv-js';
-import FilterChainRunner from '../model/FilterChainRunner';
+import FilterChainRunner, { RunnerResults } from '../model/FilterChainRunner';
 
 function FilterChainEditor() {
   // TODO: this should prob be external lol
   const [filterChain, setFilterChain] = React.useState<FilterUse[]>([
     newFilterUse('Blur'),
     newFilterUse('Similar colors'),
+    newFilterUse('Detect contours'),
+    newFilterUse('Largest contour'),
+    newFilterUse('Center of contour'),
   ])
 
-  // TODO: hack
-  const [forceCount, setForceCount] = React.useState(0);
-  function forceRedraw() {
-    setForceCount(forceCount + 1);
-  }
+  const [results, setResults] = React.useState<RunnerResults | null>(null);
+
+  const [mspf, setMspf] = React.useState<number>(1000);
 
   const runnerRef = React.useRef<FilterChainRunner | null>(null);
   if (!runnerRef.current) {
@@ -33,49 +33,22 @@ function FilterChainEditor() {
     if (!webcamRef.current?.video) { return; }
 
     runner.filterChain = filterChain;
-    const lastInput = runner.run(webcamRef.current.video);
-
-    // TODO: what if it's a video; must draw from video (still context.drawImage(video, 0, 0, width, height);)
-
-    const gl = (lastInput as any).getContext("webgl");
-    const canvas2d = document.createElement('canvas');
-    canvas2d.width = lastInput.width;
-    canvas2d.height = lastInput.height;
-    const ctx = canvas2d.getContext("2d")!;
-
-    // TODO: delay this?
-    // TODO: reuse resources?
-
-    // copy the webgl canvas to the 2d canvas
-    ctx.drawImage(gl.canvas, 0, 0);
-
-    let src = cv.imread(canvas2d);
-    console.log(src.cols, src.rows);
-    let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
-    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    cv.threshold(src, src, 120, 200, cv.THRESH_BINARY);
-    let contours = new cv.MatVector();
-    let hierarchy = new cv.Mat();
-    // You can try more different parameters
-    cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
-    // draw contours with random Scalar
-    console.log('size', contours.size());
-    for (let i = 0; i < (contours.size() as any as number); ++i) {
-        let color = new cv.Scalar(Math.round(Math.random() * 255), Math.round(Math.random() * 255),
-                                  Math.round(Math.random() * 255));
-        cv.drawContours(dst, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
-    }
-    cv.imshow('canvasOutput', dst);
-    src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
-
-    forceRedraw(); // TODO: usually this isn't necessary, and wastes 3 ms / frame
-  }, 30);
+    setResults(runner.run({type: 'image', source: webcamRef.current.video}));
+  }, mspf);
+  // }, 30);
 
   return (
     <div className="App">
       <div className="card">
         <div className="card-left">
           <h1>Input</h1>
+          <div>mspf:
+            <select value={mspf} onChange={(ev) => setMspf(+ev.target.value)} style={{fontSize: "200%"}}>
+              {[1000, 500, 100, 50].map((mspf) =>
+                <option key={mspf} value={mspf}>{mspf}</option>
+              )}
+            </select>
+          </div>
         </div>
         <div className="card-right">
           {/* TODO: fix width/height nonsense */}
@@ -87,7 +60,8 @@ function FilterChainEditor() {
           <Filter
             key={filterUse.id}
             filterUse={filterUse}
-            canvas={runner.getGlfxResources(filterUse.id)?.canvas}
+            result={results?.intermediate[filterUse.id]}
+            originalImage={webcamRef.current?.video || undefined}
             setFilterUse={(newFilterUse) => {
               const newFilterChain = filterChain.slice();
               newFilterChain[i] = newFilterUse;
@@ -102,6 +76,7 @@ function FilterChainEditor() {
         )}
         <div className="card filter">
           <div className="card-left">
+            {/* TODO: Organize filters by type (image -> image, etc) */}
             <select value={addFilterSelection} onChange={(ev) => setAddFilterSelection(ev.target.value)} style={{fontSize: "200%"}}>
               {filterSpecs.map((filterSpec) =>
                 <option key={filterSpec.name} value={filterSpec.name}>{filterSpec.name}</option>
