@@ -6,8 +6,8 @@ import DemoEmbedLib from './view/DemoEmbedLib';
 
 ReactDOM.render(
   <React.StrictMode>
-    <DemoEmbedLib />
-    {/* <DemoEmbedComponent/> */}
+    {/* <DemoEmbedLib /> */}
+    <DemoEmbedComponent/>
   </React.StrictMode>,
   document.getElementById('root')
 );
