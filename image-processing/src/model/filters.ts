@@ -165,7 +165,7 @@ export const filterSpecs: FilterSpec[] = [
             type: 'value',
             apply: (value, parameterValues) => {
                 if (value.type !== 'image') {
-                    throw new Error('needs image input');
+                    throw new Error(`needs image input, not ${value.type}`);
                 }
 
                 const { source } = value;
@@ -180,12 +180,7 @@ export const filterSpecs: FilterSpec[] = [
                 ctx.drawImage(source, 0, 0);
 
                 let src = cv.imread(canvas2d);
-                // console.log(src.cols, src.rows);
-                // // let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC4);
-                // // copy the video canvas to the 2d canvas
-                // ctx.scale(0.5,0.5) // todo oh no
-                // ctx.drawImage(webcamRef.current.video, 0, 0);
-                // let dst = cv.imread(canvas2d);
+
                 // TODO: don't like this...
                 cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
                 cv.threshold(src, src, 120, 200, cv.THRESH_BINARY);
@@ -217,7 +212,7 @@ export const filterSpecs: FilterSpec[] = [
             type: 'value',
             apply: (value, parameterValues) => {
                 if (value.type !== 'contours') {
-                    throw new Error('needs contours input');
+                    throw new Error(`needs contours input, not ${value.type}`);
                 }
 
                 const { contours } = value;
@@ -271,7 +266,7 @@ export const filterSpecs: FilterSpec[] = [
             type: 'value',
             apply: (value, parameterValues) => {
                 if (value.type !== 'contour') {
-                    throw new Error('needs contour input');
+                    throw new Error(`needs contour input, not ${value.type}`);
                 }
 
                 const { contour } = value;

@@ -1,7 +1,5 @@
 import React from "react";
-import { FilterUse, newFilterUse } from "../model/filters";
 import FilterChainEditor, { FilterChainEditorProps } from "./FilterChainEditor";
-import Webcam from 'react-webcam';
 
 interface FilterChainEditorEmbedProps extends FilterChainEditorProps {}
 

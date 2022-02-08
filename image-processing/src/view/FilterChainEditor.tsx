@@ -16,11 +16,11 @@ function FilterChainEditor({filterChain, setFilterChain, input, results}: Filter
 
   return (
     <div className="App">
-      <div className="card">
+      {/* <div className="card">
         <div className="card-left">
           <h1>Input</h1>
         </div>
-      </div>
+      </div> */}
       <div className="scroller">
         {filterChain.map((filterUse, i) =>
           <Filter

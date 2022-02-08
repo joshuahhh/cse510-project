@@ -27,10 +27,10 @@ export default class FilterChainRunner {
             }
 
             const filterSpec = filterSpecByName(filterUse.specName);
-            if (filterSpec.inputType !== value.type) {
-                // TODO: better error handling; mark future filters as invalid or something
-                throw new Error('mismatch input type')
-            }
+            // if (filterSpec.inputType !== value.type) {
+            //     // TODO: better error handling; mark future filters as invalid or something
+            //     throw new Error('mismatch input type')
+            // }
 
             const parameterValues = {...filterUse.parameterValues};
             for (const parameter of filterSpec.parameters) {
@@ -44,9 +44,9 @@ export default class FilterChainRunner {
                     value = filterSpec.operation.apply(value, parameterValues);
                 } else {
                     if (value.type !== 'image') {
-                        // TODO: better error handling; mark future filters as invalid or something
-                        throw new Error('mismatch input type')
+                        throw new Error(`needs image input, not ${value.type}`);
                     }
+
                     const glfxResources = this.updateGlfxResources(filterUse.id, value.source);
                     glfxResources.canvas.draw(glfxResources.texture);
                     filterSpec.operation.apply(glfxResources.canvas, parameterValues);
@@ -79,7 +79,7 @@ export default class FilterChainRunner {
             try {
                 glfxResources.texture.loadContentsOf(textureSource);
             } catch {
-                console.log("trouble; let's go again")
+                console.warn("trouble loading texture; let's try again")
                 glfxResources.texture.destroy();
                 delete this._glfxResourcesById[filterUseId];
                 return this.updateGlfxResources(filterUseId, textureSource);

@@ -5,7 +5,7 @@ import FilterChainEditorEmbed from "./FilterChainEditorEmbed";
 import useInterval from "./useInterval";
 import FilterChainRunner, { RunnerResults } from "../model/FilterChainRunner";
 
-function DemoEmbed() {
+function DemoEmbedComponent() {
     const [filterChain, setFilterChain] = React.useState<FilterUse[]>([
         newFilterUse('Blur'),
         newFilterUse('Similar colors'),
@@ -48,4 +48,4 @@ function DemoEmbed() {
     </>;
 }
 
-export default DemoEmbed;
+export default DemoEmbedComponent;
