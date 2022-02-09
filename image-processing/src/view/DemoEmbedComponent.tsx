@@ -33,12 +33,14 @@ function DemoEmbedComponent() {
 
     return <>
         {/* TODO: fix width/height nonsense */}
-        <Webcam width={300} height={225} ref={setWebcam} style={{flex: 1}}/>
-        <select value={mspf} onChange={(ev) => setMspf(+ev.target.value)} style={{fontSize: "200%"}}>
-              {[1000, 500, 100, 50].map((mspf) =>
-                <option key={mspf} value={mspf}>{mspf}</option>
-              )}
+        <Webcam ref={setWebcam} videoConstraints={{width: 320, height: 240}}/>
+        <div>
+            mspf: <select value={mspf} onChange={(ev) => setMspf(+ev.target.value)} style={{fontSize: "200%"}}>
+                {[1000, 500, 100, 50].map((mspf) =>
+                    <option key={mspf} value={mspf}>{mspf}</option>
+                )}
             </select>
+        </div>
         {webcam &&
             <FilterChainEditorEmbed
                 filterChain={filterChain} setFilterChain={setFilterChain}

@@ -1,8 +1,10 @@
 import React from 'react';
-import FilterChainRunner, { RunnerResults } from '../model/FilterChainRunner';
-import { FilterUse, newFilterUse } from '../model/filters';
+import FilterChainRunner, { RunnerResults } from './model/FilterChainRunner';
+import { FilterUse, newFilterUse } from './model/filters';
 import ReactDOM from 'react-dom';
-import FilterChainEditorEmbed from './FilterChainEditorEmbed';
+import FilterChainEditorEmbed from './view/FilterChainEditorEmbed';
+
+import "./view/style.css";
 
 interface GlobalState {
     runner: FilterChainRunner;
@@ -47,7 +49,7 @@ interface Props {
     showTool?: boolean;
 }
 
-export function imageProcessingTool({input, showTool}: Props) {
+export default function imageProcessingTool({input, showTool}: Props) {
     const globalState = getGlobalState();
 
     globalState.input = input;

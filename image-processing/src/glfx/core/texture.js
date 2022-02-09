@@ -26,8 +26,11 @@ export const Texture = (function() {
     }
 
     Texture.prototype.loadContentsOf = function(element) {
-        this.width = element.width || element.videoWidth;
-        this.height = element.height || element.videoHeight;
+        // JAH: videoX has precedence
+        // this.width = element.width || element.videoWidth;
+        // this.height = element.height || element.videoHeight;
+        this.width = element.videoWidth || element.width;
+        this.height = element.videoHeight || element.height;
         window.gl.bindTexture(window.gl.TEXTURE_2D, this.id);
         window.gl.texImage2D(window.gl.TEXTURE_2D, 0, this.format, this.format, this.type, element);
     };

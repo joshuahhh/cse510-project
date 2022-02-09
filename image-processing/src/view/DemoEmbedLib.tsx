@@ -1,7 +1,7 @@
 import React from "react";
 import Webcam from 'react-webcam';
 import useInterval from "./useInterval";
-import { imageProcessingTool } from "./lib";
+import imageProcessingTool from "../lib";
 
 function DemoEmbedLib() {
     const [webcam, setWebcam] = React.useState<Webcam | null>(null);

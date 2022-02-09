@@ -1,5 +1,5 @@
 import React from 'react';
-import Filter from './Filter';
+import FilterEditor from './FilterEditor';
 import { filterSpecs, FilterUse, newFilterUse } from '../model/filters';
 import { RunnerResults } from '../model/FilterChainRunner';
 
@@ -23,7 +23,7 @@ function FilterChainEditor({filterChain, setFilterChain, input, results}: Filter
       </div> */}
       <div className="scroller">
         {filterChain.map((filterUse, i) =>
-          <Filter
+          <FilterEditor
             key={filterUse.id}
             filterUse={filterUse}
             result={results?.intermediate[filterUse.id]}
@@ -42,13 +42,15 @@ function FilterChainEditor({filterChain, setFilterChain, input, results}: Filter
         )}
         <div className="card filter">
           <div className="card-left">
-            {/* TODO: Organize filters by type (image -> image, etc) */}
-            <select value={addFilterSelection} onChange={(ev) => setAddFilterSelection(ev.target.value)} style={{fontSize: "200%"}}>
-              {filterSpecs.map((filterSpec) =>
-                <option key={filterSpec.name} value={filterSpec.name}>{filterSpec.name}</option>
-              )}
-            </select>
-            <button onClick={() => setFilterChain([...filterChain, newFilterUse(addFilterSelection)])} style={{fontSize: "200%"}}>Add</button>
+            <div className="card-left-top">
+              {/* TODO: Organize filters by type (image -> image, etc) */}
+              <select value={addFilterSelection} onChange={(ev) => setAddFilterSelection(ev.target.value)} style={{fontSize: "200%"}}>
+                {filterSpecs.map((filterSpec) =>
+                  <option key={filterSpec.name} value={filterSpec.name}>{filterSpec.name}</option>
+                )}
+              </select>
+              <button onClick={() => setFilterChain([...filterChain, newFilterUse(addFilterSelection)])} style={{fontSize: "200%"}}>Add</button>
+            </div>
           </div>
         </div>
         <div className="card">

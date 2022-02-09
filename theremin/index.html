@@ -1,0 +1,115 @@
+<html>
+    <head>
+        <title>Theremin</title>
+        <script src="synthesizer.js"></script>
+        <script src="imageProcessingTool.js"></script>
+        <style>
+            #container {
+                position: relative;
+            }
+
+            #canvas {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="noise">
+            Frequency: 0hz, Volume: 0%
+        </div>
+        <div>
+            <input id="mute" type="checkbox" checked/>
+            <label for="mute">Mute</label>
+        </div>
+        <br/>
+        <div id="container">
+            <video id="video" autoplay="true"></video>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <script>
+            // References to DOM elements
+            var muteCheckbox = document.getElementById("mute");
+            var video = document.getElementById("video");
+            var canvas = document.getElementById("canvas");
+
+            // Make a synthesizer
+            // TODO: Possible issues with AudioContext needing a user gesture?
+            var synthesizer = new Synthesizer();
+
+            // Hook up mute checkbox to synthesizer
+            muteCheckbox.addEventListener("input", function (ev) {
+                synthesizer.muted(ev.target.checked);
+            })
+            synthesizer.muted(true);  // and start muted
+
+            // Connect to webcam
+            if (navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function (stream) {
+                        video.srcObject = stream;
+                    })
+                    .catch(function (error) {
+                        console.error("trouble connecting to webcam");
+                    });
+            } else {
+                console.error("no support for webcam");
+            }
+
+            // Set up canvas once video is set up
+            video.addEventListener('play', function () {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                update();
+            })
+
+            var x = 100;
+            var y = 100;
+
+            function update() {
+                // Update synth
+                var volume = x / canvas.width * 100;
+                var freq = (1 - (y / canvas.height)) * 1000;
+                synthesizer.play(volume, freq)
+
+                // Draw dot in the right place
+                var context = canvas.getContext('2d');
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.beginPath();
+                context.arc(x, y, 10, 0, 2 * Math.PI);
+                context.fillStyle = "rgb(0, 255, 0)";
+                context.fill();
+                context.strokeStyle = "rgb(0, 0, 0)";
+                context.stroke();
+            }
+
+            // Draggable x & y
+            function canvasEventHandler(event) {
+                if (event.buttons) {
+                    var rect = canvas.getBoundingClientRect();
+                    x = event.clientX - rect.x;
+                    y = event.clientY - rect.y;
+                    update();
+                }
+            }
+            canvas.addEventListener('mousedown', canvasEventHandler);
+            canvas.addEventListener('mousemove', canvasEventHandler);
+
+            // Image-processing loop
+            setInterval(function () {
+                var result = imageProcessingTool({
+                    input: video,
+                    showTool: true,
+                });
+                if (result) {
+                    x = result.point.x;
+                    y = result.point.y;
+                    update();
+                }
+                console.log("result from tool:", result);
+            }, 30)
+        </script>
+    </body>
+</html>
