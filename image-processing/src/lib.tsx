@@ -70,7 +70,9 @@ function update() {
             filterChain={globalState.filterChain}
             setFilterChain={(newFilterChain) => {
                 globalState.filterChain = newFilterChain;
-                update();
+                // TODO: If imageProcessingTool is being called in a fast loop, this creates choppy behavior.
+                //       If it's being called in a slow loop, it's desired. What to do?
+                // update();
             }}
             input={globalState.input} results={globalState.results}
         />, globalState.mountingLocation)
