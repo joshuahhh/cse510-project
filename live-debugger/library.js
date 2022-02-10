@@ -174,7 +174,13 @@ const debugger_interface = async ({ set_state }) => {
     out.onclick = cb
     return out
   }
-  return async ({ current_input, callback, interactive = true, active = true, code }) => {
+  return async ({ current_input, callback, interactive = true, active = true, code, history = [], expected = [], keep=[] }) => {
+    if (!(history[0]?.input == current_input)) {
+      //const no_keep = history.filter((e, i) => !history[i].keep)
+      const keepers = history.filter((e, i) => history[i].keep)
+      set_state({ history: [{ input: current_input }, ...keepers] })
+      return
+    }
     //editor.setOption("readonly", !interactive)
     console.debug('building the editor')
     const editor = await (async () => {
@@ -195,7 +201,7 @@ const debugger_interface = async ({ set_state }) => {
       const view = new EditorView({
         state: EditorState.create({
           doc: code,
-          extensions: [basicSetup, javascript(), updateViewOf, ...(interactive && active ? [] : [EditorView.editable.of(false)])]  // disable editing if not interactive
+          extensions: [basicSetup, javascript(), updateViewOf] // actually enable, ...(interactive && active ? [] : [EditorView.editable.of(false)])]  // disable editing if not interactive
         })
       })
       view.dom.value = code  // HACK because the value isn't inited
@@ -214,7 +220,53 @@ const debugger_interface = async ({ set_state }) => {
         return e
       }
     })
+
+    const general_output = input => output(editor, q => {
+      try {
+        return compute_output(JSON.parse(input), q)
+      } catch (e) {
+        return e
+      }
+    })
+
     console.debug('computed output, now returning html')
+    console.log(history)
+    // history = []  // of inputs?
+    // expected = []  // of values? store as an object like {value} to avoid ambiguity about expected undefined
+    
+    const expected_input = i => {
+      const el = html`<input>`
+      el.oninput = () => {
+        history[i].expected = { value: JSON.parse(el.value) }
+        set_state({ history })
+      }
+      return el
+    }
+
+    const remove_expected = i => {
+      const el = html`<button>Remove</button>`
+      el.onclick = () => {
+        delete history[i].expected
+        set_state({ history })
+      }
+      return el
+    }
+
+    const toggle_keep = i => {
+      const el = html`<input type="checkbox" >`
+      el.checked = history[i].keep
+      el.onclick = () => {
+        history[i].keep = el.checked
+        const current = history.find(e => e.input == current_input)
+        history = history.filter(v => v.input != current_input)
+        //const no_keep = history.filter((e, i) => !history[i].keep)
+        const keepers = history.filter((e, i) => history[i].keep)
+        set_state({ history: [current, ...keepers] })
+        //set_state({ keep })
+      }
+      return el
+    }
+    
     return html`
 <div id="livedebug">
 Input: <div id="input">${inspect(JSON.parse(current_input))}</div>
@@ -226,7 +278,7 @@ Output:
 ${output(output_temp, q => q instanceof Error ? q : inspect(q))}
 </div>
 
-<div>
+<div style="display: none"> <!-- not allowing toggle right now -->
 ${output(output_temp, q =>
       q instanceof Error ? "(Can't send bad output.)"
         : !active || !interactive ? '(viewing mode)'
@@ -234,6 +286,27 @@ ${output(output_temp, q =>
 
 ${!interactive ? button("Activate breakpoint", async () => await set_state({ interactive: true }))
         : button("Deactivate breakpoint", async () => await set_state({ interactive: false }))}
+</div>
+
+<div>
+<table>
+<tr>
+  <th>Keep</th>
+  <th>Input</th>
+  <th>Expected</th>
+  <th>Output</th>
+</tr>
+${history.map((item, i) => 
+  html.fragment`
+  <tr style="color: ">
+    <td>${toggle_keep(i)}</td>
+    <td>${inspect(JSON.parse(item.input))}</td>
+    <td>${item.expected ? html`${inspect(item.expected.value)} ${remove_expected(i)}` : expected_input(i)}</td>
+    <td>${inspect(general_output(item.input))}</td>
+  </tr>
+  `
+)}
+</table> 
 </div>
 </div>
 <style>
@@ -272,8 +345,17 @@ const liveDebugger = async (id, current_input, config) => {
 
   const update_local_copy = config =>
     console.debug('(This is where the local copy would be updated.') //fetch(`http://localhost:3000/set?id=${id}&config=${JSON.stringify(config)}`)
-
-  let debugger_div = document.querySelector('#live_debugger')
+  
+  if (!document.querySelector('style#live_debugger')) {
+    document.head.appendChild(html`<style id="live_debugger">
+                                  #live_debugger {
+                                    width: 100%;
+                                    margin: 5px
+                                  }
+                                </style>`)
+  }
+  
+  let debugger_div = document.querySelector('div#live_debugger')
   if (!debugger_div) {
     debugger_div = html`<div id="live_debugger"></div>`
     split_view({ parent: document.body, left: document.body.childNodes, right: debugger_div })
