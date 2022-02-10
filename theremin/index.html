@@ -129,7 +129,7 @@
                     input: video,
                     showTool: true,
                 });
-                if (result) {
+                if (result && result.point) {
                     x = result.point.x;
                     y = result.point.y;
                     update();
