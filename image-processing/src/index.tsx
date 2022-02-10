@@ -1,11 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
+import './view/style.css';
+import DemoEmbedComponent from './view/DemoEmbedComponent';
+import DemoEmbedLib from './view/DemoEmbedLib';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    {/* <DemoEmbedLib /> */}
+    <DemoEmbedComponent/>
   </React.StrictMode>,
   document.getElementById('root')
 );
