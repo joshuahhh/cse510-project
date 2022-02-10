@@ -4,8 +4,6 @@ import { FilterUse, newFilterUse } from './model/filters';
 import ReactDOM from 'react-dom';
 import FilterChainEditorEmbed from './view/FilterChainEditorEmbed';
 
-import "./view/style.css";
-
 interface GlobalState {
     runner: FilterChainRunner;
     input: HTMLVideoElement | HTMLCanvasElement;

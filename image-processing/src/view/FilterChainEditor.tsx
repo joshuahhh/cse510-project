@@ -3,7 +3,7 @@ import FilterEditor from './FilterEditor';
 import { filterSpecs, FilterUse, newFilterUse } from '../model/filters';
 import { RunnerResults } from '../model/FilterChainRunner';
 import FlipMove from 'react-flip-move';
-
+import styles from './FilterChainEditor.css';
 
 export interface FilterChainEditorProps {
   filterChain: FilterUse[],
@@ -18,6 +18,7 @@ function FilterChainEditor({filterChain, setFilterChain, input, results}: Filter
 
   return (
     <div className="FilterChainEditor">
+      <style type="text/css">{styles}</style>
       {/* <div className="card">
         <div className="card-left">
           <h1>Input</h1>
