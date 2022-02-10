@@ -15,6 +15,8 @@ interface GlobalState {
     showTool: boolean;
 }
 
+const localStorageKey = 'image-processing-tool-filter-spec';
+
 function getGlobalState(): GlobalState {
     let globalState: GlobalState = (window as any)._IMAGE_PROCESSING_TOOL_GLOBAL_STATE_;
     if (!globalState) {
@@ -23,13 +25,12 @@ function getGlobalState(): GlobalState {
         mountingLocation.classList.add("image-processing-tool-mounting-location");
         document.body.append(mountingLocation)
 
-        const filterChain: FilterUse[] = [
-            newFilterUse('Blur'),
-            newFilterUse('Similar colors'),
-            newFilterUse('Detect contours'),
-            newFilterUse('Largest contour'),
-            newFilterUse('Center of contour'),
-        ]
+        let filterChain: FilterUse[] = []
+
+        const filterChainJson = window.localStorage.getItem(localStorageKey)
+        if (filterChainJson) {
+            filterChain = JSON.parse(filterChainJson);
+        }
 
         globalState = {
             filterChain,
@@ -73,6 +74,8 @@ function update() {
                 // TODO: If imageProcessingTool is being called in a fast loop, this creates choppy behavior.
                 //       If it's being called in a slow loop, it's desired. What to do?
                 // update();
+
+                window.localStorage.setItem(localStorageKey, JSON.stringify(newFilterChain));
             }}
             input={globalState.input} results={globalState.results}
         />, globalState.mountingLocation)
