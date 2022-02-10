@@ -75,3 +75,15 @@ h1 {
   font-style: italic;
   text-align: center;
 }
+
+.card-controls {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+}
+
+.card-controls button {
+  width: 30px;
+  height: 30px;
+}

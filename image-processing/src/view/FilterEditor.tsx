@@ -11,6 +11,8 @@ interface Props {
   setFilterUse: (newFilterUse: FilterUse) => void,
 
   deleteMe: () => void,
+  raiseMe: (() => void) | undefined,
+  lowerMe: (() => void) | undefined,
 
   result: Result | undefined,
 
@@ -25,7 +27,7 @@ function dims(source: HTMLVideoElement | HTMLCanvasElement) {
   }
 }
 
-function FilterEditor({filterUse, setFilterUse, deleteMe, result, originalImage}: Props) {
+const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raiseMe, lowerMe, result, originalImage}: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
   // console.log(filterUse.id, "render", canvas);
 
   const filterSpec = filterSpecByName(filterUse.specName);
@@ -33,8 +35,8 @@ function FilterEditor({filterUse, setFilterUse, deleteMe, result, originalImage}
     return <div className="Error">cannot find filter with key <pre>{filterUse.specName}</pre></div>;
   }
 
-  return <ErrorBoundary>
-    <div className="card filter">
+  return <div className="card filter" ref={ref}>
+    <ErrorBoundary>
       <div className="card-left">
         <div className="card-left-top">
           <h1>{filterSpec.name}</h1>
@@ -157,12 +159,14 @@ function FilterEditor({filterUse, setFilterUse, deleteMe, result, originalImage}
           </div>
         }
       </div>
-      <div style={{position: 'absolute', right: 30}} onClick={deleteMe}>
-        <button>❌</button>
+      <div className="card-controls">
+        {<button onClick={raiseMe} style={{visibility: raiseMe ? 'visible' : 'hidden'}}>⇧</button>}
+        {<button onClick={lowerMe} style={{visibility: lowerMe ? 'visible' : 'hidden'}}>⇩</button>}
+        <button onClick={deleteMe}>❌</button>
       </div>
-    </div>
-  </ErrorBoundary>;
-}
+    </ErrorBoundary>
+  </div>;
+})
 
 function numberEditor(parameter: NumberParameterSpec, value: any, setValue: (value: any) => void) {
   return <input

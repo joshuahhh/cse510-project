@@ -2,6 +2,8 @@ import React from 'react';
 import FilterEditor from './FilterEditor';
 import { filterSpecs, FilterUse, newFilterUse } from '../model/filters';
 import { RunnerResults } from '../model/FilterChainRunner';
+import FlipMove from 'react-flip-move';
+
 
 export interface FilterChainEditorProps {
   filterChain: FilterUse[],
@@ -22,24 +24,42 @@ function FilterChainEditor({filterChain, setFilterChain, input, results}: Filter
         </div>
       </div> */}
       <div className="scroller">
-        {filterChain.map((filterUse, i) =>
-          <FilterEditor
-            key={filterUse.id}
-            filterUse={filterUse}
-            result={results?.intermediate[filterUse.id]}
-            originalImage={input || undefined}
-            setFilterUse={(newFilterUse) => {
-              const newFilterChain = filterChain.slice();
-              newFilterChain[i] = newFilterUse;
-              setFilterChain(newFilterChain);
-            }}
-            deleteMe={() => {
-              const newFilterChain = filterChain.slice();
-              newFilterChain.splice(i, 1);
-              setFilterChain(newFilterChain);
-            }}
-          />
-        )}
+        <FlipMove>
+          {filterChain.map((filterUse, i) =>
+            <FilterEditor
+              key={filterUse.id}
+              filterUse={filterUse}
+              result={results?.intermediate[filterUse.id]}
+              originalImage={input || undefined}
+              setFilterUse={(newFilterUse) => {
+                const newFilterChain = filterChain.slice();
+                newFilterChain[i] = newFilterUse;
+                setFilterChain(newFilterChain);
+              }}
+              deleteMe={() => {
+                const newFilterChain = filterChain.slice();
+                newFilterChain.splice(i, 1);
+                setFilterChain(newFilterChain);
+              }}
+              raiseMe={i > 0 ? () => {
+                const newFilterChain = [
+                  ...filterChain.slice(0, i - 1),
+                  filterChain[i], filterChain[i - 1],
+                  ...filterChain.slice(i + 1)
+                ];
+                setFilterChain(newFilterChain);
+              } : undefined}
+              lowerMe={i < filterChain.length - 1 ? () => {
+                const newFilterChain = [
+                  ...filterChain.slice(0, i),
+                  filterChain[i + 1], filterChain[i],
+                  ...filterChain.slice(i + 2)
+                ];
+                setFilterChain(newFilterChain);
+              } : undefined}
+            />
+          )}
+        </FlipMove>
         <div className="card filter">
           <div className="card-left">
             <div className="card-left-top">
