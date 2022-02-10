@@ -2,6 +2,7 @@ import { canvas as _canvas } from './core/canvas';
 import brightnessContrast from './filters/adjust/brightnesscontrast';
 import hueSaturation from './filters/adjust/huesaturation';
 import triangleBlur from './filters/blur/triangleblur';
+import erodeDilate from './filters/blur/erodedilate';
 import similar from './filters/similar';
 
 export type GlfxSource = HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
@@ -14,6 +15,7 @@ export interface GlfxCanvas extends HTMLCanvasElement {
     brightnessContrast: typeof brightnessContrast,
     hueSaturation: typeof hueSaturation,
     triangleBlur: typeof triangleBlur,
+    erodeDilate: typeof erodeDilate,
     similar: typeof similar,
 }
 

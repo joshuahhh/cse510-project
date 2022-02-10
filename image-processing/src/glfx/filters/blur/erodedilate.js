@@ -1,21 +1,15 @@
 import { gl, splineInterpolate, simpleShader, randomShaderFunc } from "../common";
 import { Shader } from '../../core/shader'
 
-/**
- * @filter       Triangle Blur
- * @description  This is the most basic blur filter, which convolves the image with a
- *               pyramid filter. The pyramid filter is separable and is applied as two
- *               perpendicular triangle filters.
- * @param radius The radius of the pyramid convolved with the image.
- */
- export default function triangleBlur(radius) {
+export default function erodeDilate(radius, dilate) {
     window.gl.triangleBlur = window.gl.triangleBlur || new Shader(null, `
         uniform sampler2D texture;
         uniform vec2 delta;
         varying vec2 texCoord;
+        uniform float dilate;
         ${randomShaderFunc}
         void main() {
-            vec4 color = vec4(0.0);
+            gl_FragColor = texture2D(texture, texCoord);
             float total = 0.0;
 
             /* randomize the lookup values to hide the fixed number of samples */
@@ -23,17 +17,13 @@ import { Shader } from '../../core/shader'
 
             for (float t = -30.0; t <= 30.0; t++) {
                 float percent = (t + offset - 0.5) / 30.0;
-                float weight = 1.0 - abs(percent);
                 vec4 sample = texture2D(texture, texCoord + delta * percent);
 
                 /* switch to pre-multiplied alpha to correctly blur transparent images */
                 sample.rgb *= sample.a;
 
-                color += sample * weight;
-                total += weight;
+                gl_FragColor = dilate == 0. ? max(gl_FragColor, sample) : min(gl_FragColor, sample);
             }
-
-            gl_FragColor = color / total;
 
             /* switch back from pre-multiplied alpha */
             gl_FragColor.rgb /= gl_FragColor.a + 0.00001;
@@ -41,10 +31,10 @@ import { Shader } from '../../core/shader'
     `);
 
     simpleShader.call(this, window.gl.triangleBlur, {
-        delta: [radius / this.width, 0]
+        delta: [radius / this.width, 0], dilate
     });
     simpleShader.call(this, window.gl.triangleBlur, {
-        delta: [0, radius / this.height]
+        delta: [0, radius / this.height], dilate
     });
 
     return this;

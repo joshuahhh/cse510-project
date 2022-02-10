@@ -2,6 +2,7 @@ import { Texture } from './texture';
 import { Shader } from './shader';
 
 import triangleBlur from './../filters/blur/triangleblur'
+import erodeDilate from './../filters/blur/erodedilate'
 import brightnessContrast from './../filters/adjust/brightnesscontrast'
 import hueSaturation from './../filters/adjust/huesaturation'
 import similar from './../filters/similar'
@@ -156,6 +157,7 @@ export function canvas() {
     canvas.hueSaturation = wrap(hueSaturation);
     // canvas.colorHalftone = wrap(colorHalftone);
     canvas.triangleBlur = wrap(triangleBlur);
+    canvas.erodeDilate = wrap(erodeDilate);
     // canvas.unsharpMask = wrap(unsharpMask);
     // canvas.perspective = wrap(perspective);
     // canvas.matrixWarp = wrap(matrixWarp);
