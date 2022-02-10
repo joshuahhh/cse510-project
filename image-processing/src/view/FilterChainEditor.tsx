@@ -17,7 +17,7 @@ function FilterChainEditor({filterChain, setFilterChain, input, results}: Filter
   const [addFilterSelection, setAddFilterSelection] = React.useState<string>(filterSpecs[0].name)
 
   return (
-    <div className="App">
+    <div className="FilterChainEditor">
       {/* <div className="card">
         <div className="card-left">
           <h1>Input</h1>
