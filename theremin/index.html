@@ -4,8 +4,13 @@
         <script src="synthesizer.js"></script>
         <script src="imageProcessingTool.js"></script>
         <style>
+            body {
+                background: gainsboro;
+            }
+
             #container {
                 position: relative;
+                display: inline-block;
             }
 
             #canvas {
@@ -13,27 +18,44 @@
                 left: 0;
                 top: 0;
             }
+
+            #theremin-image {
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+
+            h1 {
+                font-family: 'Poiret One', cursive;
+            }
         </style>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poiret+One&display=swap" rel="stylesheet">
     </head>
     <body>
-        <div id="noise">
-            Frequency: 0hz, Volume: 0%
+        <h1>The Astonishing Theremin</h1>
+        <div id="container">
+            <video id="video" autoplay="true"></video>
+            <img id="theremin-image" src="Etherwave_Theremin_Kit.png"/>
+            <canvas id="canvas"></canvas>
+        </div>
+        <div>
+            Frequency: <span id="frequency"></span>hz, Volume: <span id="volume"></span>%
         </div>
         <div>
             <input id="mute" type="checkbox" checked/>
             <label for="mute">Mute</label>
         </div>
-        <br/>
-        <div id="container">
-            <video id="video" autoplay="true"></video>
-            <canvas id="canvas"></canvas>
-        </div>
-
         <script>
             // References to DOM elements
             var muteCheckbox = document.getElementById("mute");
             var video = document.getElementById("video");
             var canvas = document.getElementById("canvas");
+            var frequencyText = document.getElementById("frequency");
+            var volumeText = document.getElementById("volume");
 
             // Make a synthesizer
             // TODO: Possible issues with AudioContext needing a user gesture?
@@ -71,8 +93,8 @@
             function update() {
                 // Update synth
                 var volume = x / canvas.width * 100;
-                var freq = (1 - (y / canvas.height)) * 1000;
-                synthesizer.play(volume, freq)
+                var frequency = (1 - (y / canvas.height)) * 1000;
+                synthesizer.play(volume, frequency)
 
                 // Draw dot in the right place
                 var context = canvas.getContext('2d');
@@ -83,6 +105,10 @@
                 context.fill();
                 context.strokeStyle = "rgb(0, 0, 0)";
                 context.stroke();
+
+                // Update text
+                frequencyText.innerText = frequency.toFixed(0);
+                volumeText.innerText = volume.toFixed(0);
             }
 
             // Draggable x & y
@@ -103,7 +129,7 @@
                     input: video,
                     showTool: true,
                 });
-                if (result) {
+                if (result && result.point) {
                     x = result.point.x;
                     y = result.point.y;
                     update();

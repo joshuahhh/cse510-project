@@ -1,11 +1,16 @@
 import React from "react";
 import FilterChainEditor, { FilterChainEditorProps } from "./FilterChainEditor";
+import root from "react-shadow";
+import styles from './FilterChainEditorEmbed.css';
 
 interface FilterChainEditorEmbedProps extends FilterChainEditorProps {}
 
 function FilterChainEditorEmbed(props: FilterChainEditorEmbedProps) {
-    return <div style={{position: 'absolute', right: 0, top: 0, width: '50%', maxWidth: 800, height: '100%', borderLeft: '1px solid gray'}}>
-        {<FilterChainEditor {...props} />}
+    return <div className="FilterChainEditorEmbed">
+        <style type="text/css">{styles}</style>
+        <root.div>
+            {<FilterChainEditor {...props} />}
+        </root.div>
     </div>;
 }
 

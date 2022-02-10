@@ -4,15 +4,18 @@ import Webcam from 'react-webcam';
 import FilterChainEditorEmbed from "./FilterChainEditorEmbed";
 import useInterval from "./useInterval";
 import FilterChainRunner, { RunnerResults } from "../model/FilterChainRunner";
+import useJsonLocalStorage from "./useJsonLocalStorage";
+
+const defaultChain = [
+    newFilterUse('Blur'),
+    newFilterUse('Similar colors'),
+    newFilterUse('Detect contours'),
+    newFilterUse('Largest contour'),
+    newFilterUse('Center of contour'),
+];
 
 function DemoEmbedComponent() {
-    const [filterChain, setFilterChain] = React.useState<FilterUse[]>([
-        newFilterUse('Blur'),
-        newFilterUse('Similar colors'),
-        newFilterUse('Detect contours'),
-        newFilterUse('Largest contour'),
-        newFilterUse('Center of contour'),
-    ])
+    const [filterChain, setFilterChain] = useJsonLocalStorage<FilterUse[]>('demo-chain', defaultChain);
 
     const [webcam, setWebcam] = React.useState<Webcam | null>(null);
     const [mspf, setMspf] = React.useState<number>(1000);
@@ -41,12 +44,43 @@ function DemoEmbedComponent() {
                 )}
             </select>
         </div>
+        <button onClick={() => setFilterChain(defaultChain)}>Reset filter chain</button>
         {webcam &&
             <FilterChainEditorEmbed
                 filterChain={filterChain} setFilterChain={setFilterChain}
                 input={webcam.video!} results={results || undefined}
             />
         }
+        <div>Lots</div>
+        <div>more</div>
+        <div>text!</div>
+        <div>Lots</div>
+        <div>more</div>
+        <div>text!</div>
+        <div>Lots</div>
+        <div>more</div>
+        <div>text!</div>
+        <div>Lots</div>
+        <div>more</div>
+        <div>text!</div>
+        <div>Lots</div>
+        <div>more</div>
+        <div>text!</div>
+        <div>Lots</div>
+        <div>more</div>
+        <div>text!</div>
+        <div>Lots</div>
+        <div>more</div>
+        <div>text!</div>
+        <div>Lots</div>
+        <div>more</div>
+        <div>text!</div>
+        <div>Lots</div>
+        <div>more</div>
+        <div>text!</div>
+        <div>Lots</div>
+        <div>more</div>
+        <div>text!</div>
     </>;
 }
 

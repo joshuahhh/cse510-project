@@ -132,6 +132,31 @@ export const filterSpecs: FilterSpec[] = [
         },
     },
     {
+        name: 'Erode / dilate',
+        inputType: 'image',
+        outputType: 'image',
+        parameters: [
+            {
+                name: 'Which?',
+                type: 'choice',
+                default: 'Erode',
+                choices: ['Erode', 'Dilate'],
+            },
+            {
+                name: 'Distance',
+                type: 'number',
+                default: 8, min: 0, max: 100, step: 1,
+                formatter: (val: number) => `${val}px`
+            },
+        ],
+        operation: {
+            type: 'glfx',
+            apply: (canvas, parameterValues) => {
+                canvas.erodeDilate(parameterValues["Distance"], parameterValues["Which?"] === 'Erode' ? 1. : 0.);
+            },
+        },
+    },
+    {
         name: 'Similar colors',
         inputType: 'image',
         outputType: 'image',

@@ -59,7 +59,8 @@ export default class FilterChainRunner {
                 if (e instanceof Error) {
                     message = e.message;
                 } else {
-                    message = 'unknown error';
+                    message = 'unknown error; logging';
+                    console.error(e);
                 }
                 intermediate[filterUse.id] = {type: 'error', message};
                 value = null;
