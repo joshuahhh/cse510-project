@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 
 <head>
-  <script type="module" src="./index.js"></script>
   <style>
     #game-board {
       display: grid;
@@ -36,4 +35,110 @@
 </head>
 
 <body>
+  <div id="game-board">
+  </div>
+  <script type="module">
+    import { liveDebugger} from './library.js'
+
+    // *******************
+    // Important variables
+    // *******************
+
+    var size = 5
+
+    var heroX = 0;
+    var heroY = 0;
+    var enemyX = 3;
+    var enemyY = 3;
+
+
+
+    // ***********************
+    // Building the game board
+    // ***********************
+
+    var gameBoard = document.getElementById('game-board');
+    for (var y = 0; y < size; y++) {
+      for (var x = 0; x < size; x++) {
+        var cell = document.createElement('div');
+        cell.dataset.x = x;
+        cell.dataset.y = y;
+        gameBoard.appendChild(cell);
+      }
+    }
+
+    var hero = document.createElement('img');
+    hero.src = "images/mario.png";
+    gameBoard.querySelector('div[data-x="' + heroX + '"][data-y="' + heroY + '"').appendChild(hero);
+
+    var enemy = document.createElement('img');
+    enemy.src = "images/bowser.png";
+    gameBoard.querySelector('div[data-x="' + enemyX + '"][data-y="' + enemyY + '"').appendChild(enemy);
+
+
+
+    // ********
+    // Dragging
+    // ********
+
+    let draggedElem = null;
+
+    // Add image drag event listeners
+    Array.from(gameBoard.children).forEach((el) => {
+      el.addEventListener("mouseenter", function (event) {
+        if (draggedElem) {
+          el.appendChild(draggedElem);
+
+          calculateEnemyMove();
+        }
+      });
+    });
+
+    hero.addEventListener("mousedown", function (event) {
+      draggedElem = hero;
+      event.preventDefault();
+    });
+    enemy.addEventListener("mousedown", function (event) {
+      draggedElem = enemy;
+      event.preventDefault();
+    });
+    document.addEventListener("mouseup", function () {
+      draggedElem = null;
+    });
+
+
+
+    // ***********************
+    // Updating the enemy move
+    // ***********************
+
+    function calculateEnemyMove() {
+      var heroX = +hero.parentElement.dataset.x
+      var heroY = +hero.parentElement.dataset.y
+      var enemyX = +enemy.parentElement.dataset.x
+      var enemyY = +enemy.parentElement.dataset.y
+
+      var output = liveDebugger('id1', {
+        heroX,
+        heroY,
+        enemyX,
+        enemyY,
+      });
+
+      var oldNext = gameBoard.querySelector("div.user-next");
+      if (oldNext) {
+        oldNext.classList.remove("user-next");
+      }
+      if (output) {
+        var nextX = output[0];
+        var nextY = output[1];
+        if (typeof nextX === 'number' && typeof nextY === 'number') {
+          console.log('div[data-x="' + nextX + '"][data-y="' + nextY + '"]')
+          gameBoard.querySelector('div[data-x="' + nextX + '"][data-y="' + nextY + '"]').classList.add("user-next");
+        }
+      }
+    }
+    calculateEnemyMove();
+
+  </script>
 </body>
