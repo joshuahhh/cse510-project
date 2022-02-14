@@ -73,7 +73,17 @@
 
     let draggedElem = null;
 
-    // Add image drag event listeners
+    // Start drag
+    hero.addEventListener("mousedown", function (event) {
+      draggedElem = hero;
+      event.preventDefault();
+    });
+    enemy.addEventListener("mousedown", function (event) {
+      draggedElem = enemy;
+      event.preventDefault();
+    });
+
+    // Drag into cell
     Array.from(gameBoard.children).forEach((el) => {
       el.addEventListener("mouseenter", function (event) {
         if (draggedElem) {
@@ -84,14 +94,7 @@
       });
     });
 
-    hero.addEventListener("mousedown", function (event) {
-      draggedElem = hero;
-      event.preventDefault();
-    });
-    enemy.addEventListener("mousedown", function (event) {
-      draggedElem = enemy;
-      event.preventDefault();
-    });
+    // End drag
     document.addEventListener("mouseup", function () {
       draggedElem = null;
     });
@@ -116,6 +119,11 @@
       var enemyY = +enemy.parentElement.dataset.y
 
       // Calculate enemy direction
+
+      // Option 1: Hard-coded
+      var enemyDirection = 'left';
+
+      // Option 2: Using live tool
       var enemyDirection = liveDebugger('id1', {
         heroX: heroX,
         heroY: heroY,
@@ -134,9 +142,10 @@
       } else if (enemyDirection === 'down') {
         nextY++;
       }
-
       gameBoard.querySelector('div[data-x="' + nextX + '"][data-y="' + nextY + '"]').classList.add("user-next");
     }
+
+    // And run it to start
     calculateEnemyMove();
 
   </script>
