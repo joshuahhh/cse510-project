@@ -14,41 +14,6 @@ const board = () => {
       document.documentElement.clientWidth
     );
   }
-  const style = () => {
-    const size = `${Math.min(100, getWidth() / num_rows_cols)}px`;
-    return html`<style>
-#game-board {
-display: grid;
-grid-template-columns: ${(size + " ").repeat(num_rows_cols)};
-grid-template-rows: ${(size + " ").repeat(num_rows_cols)};
-justify-content: center;
-padding: 20px;
-}
-#game-board div {
-background: #d9d9d9;
-border: 2px solid black;
-width: ${size};
-height: ${size};
-}
-#game-board div.user-next {
-background: blue;
-}
-#game-board div.correct-next {
-background: green;
-}
-#game-board img {
-height: ${size};
-width: ${size};
-cursor: grab;
-position: absolute; /* layer images */
-object-fit: scale-down; /* fit in cell */
-}
-textarea {
-font-family: monospace !important;
-}
-</style>`;
-  }
-  document.body.appendChild(style())
 
   // Fix JS -- use old conventions
   // move HTML to HTML
