@@ -4,6 +4,7 @@ import { filterSpecs, FilterUse, newFilterUse } from '../model/filters';
 import { RunnerResults } from '../model/FilterChainRunner';
 import FlipMove from 'react-flip-move';
 import styles from './FilterChainEditor.css';
+import reactColorfulStyles from './react-colorful.css'
 
 export interface FilterChainEditorProps {
   filterChain: FilterUse[],
@@ -19,6 +20,7 @@ function FilterChainEditor({filterChain, setFilterChain, input, results}: Filter
   return (
     <div className="FilterChainEditor">
       <style type="text/css">{styles}</style>
+      <style type="text/css">{reactColorfulStyles}</style>
       {/* <div className="card">
         <div className="card-left">
           <h1>Input</h1>
