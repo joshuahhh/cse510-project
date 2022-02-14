@@ -59,28 +59,29 @@ font-family: monospace !important;
     .map((_, i) => html`<div data-id='${i}'></div>`)}</div>`
 
   // Create Bowser (as an HTML image)
-  let protag = html`<img id="protag" src="${protag_img_src}" />`;
+  // TODO enemy and protag names are reversed for some reason???
+  let protag = html`<img id="protag" src="${enemy_img_src}" />`;
   let protag_pos = Math.floor(Math.random() * num_rows_cols ** 2);
   //console.log(board.outerHTML)
   board.querySelector(`div[data-id="${protag_pos}"]`).appendChild(protag);
 
   // Create Mario (as an HTML image)
-  let enemy = html`<img id="enemy" src="${enemy_img_src}" />`;
+  let enemy = html`<img id="enemy" src="${protag_img_src}" />`;
   let enemy_pos = protag_pos;
   while (enemy_pos === protag_pos) {
     enemy_pos = Math.floor(Math.random() * num_rows_cols ** 2);
   }
   board.querySelector(`div[data-id="${enemy_pos}"]`).appendChild(enemy);
 
-  const divmod = (n) => [n % num_rows_cols, Math.floor(n / num_rows_cols)];
+  const divmod = (n) => [Math.floor(n / num_rows_cols), n % num_rows_cols, ];
 
   // Handle user input
   // EXPERIMENT NOTE they have to figure out that this should be async
-  async function applyUserInput() {
+  function applyUserInput() {
     let [protag_y, protag_x] = divmod(+protag.parentElement.dataset.id);
     let [enemy_y, enemy_x] = divmod(+enemy.parentElement.dataset.id);
     // Define Bowser's next move
-    let [user_next_y, user_next_x] = await liveDebugger('id1', {
+    let [user_next_x, user_next_y] = [enemy_x + 1, enemy_y]/*liveDebugger('id1', {
       protag_x,
       protag_y,
       enemy_x,
