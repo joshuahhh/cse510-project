@@ -5,6 +5,8 @@ const Inspector = inspector.Inspector
 import { EditorState, EditorView, basicSetup } from 'https://cdn.skypack.dev/@codemirror/next/basic-setup'
 import { javascript } from 'https://cdn.skypack.dev/@codemirror/next/lang-javascript'
 
+let retval;
+
 const split_view = ({ parent = document.createElement('div'), left = parent.childNodes, right = [], /*top, bottom*/ initial_width = '75%' } = {}) => {
   // TODO add top/bottom support using https://github.com/1milligram/html-dom/blob/master/public/demo/create-resizable-split-views/direction.html
 
@@ -184,12 +186,7 @@ const debugger_interface = ({ set_state }) => {
     return out
   }
   return ({ current_input, callback, interactive = true, active = true, code, history = [], expected = [], keep=[] }) => {
-    if (!(history[0]?.input == current_input)) {
-      //const no_keep = history.filter((e, i) => !history[i].keep)
-      const keepers = history.filter((e, i) => history[i].keep)
-      setTimeout(() => set_state({ history: [{ input: current_input }, ...keepers] }))
-      return
-    }
+    
     //editor.setOption("readonly", !interactive)
     console.debug('building the editor')
     const editor = (() => {
@@ -215,7 +212,15 @@ const debugger_interface = ({ set_state }) => {
       return view.dom
     })()
     console.debug(current_input, callback, interactive, active)
+
     retval = compute_output(JSON.parse(current_input), editor.value)
+    if (!(history[0]?.input == current_input)) {
+      console.log('fixing history')
+      //const no_keep = history.filter((e, i) => !history[i].keep)
+      const keepers = history.filter((e, i) => history[i].keep)
+      setTimeout(() => set_state({ history: [{ input: current_input }, ...keepers] }))
+      return undefined  // render nothing, will rerender momentarily
+    } 
     if (!interactive) {
       console.log("calling callback", current_input, editor.value)
       
@@ -289,13 +294,13 @@ ${output(output_temp, q => q instanceof Error ? q : inspect(q))}
 </div>
 
 <div style="display: none"> <!-- not allowing toggle right now -->
-${output(output_temp, q =>
-      q instanceof Error ? "(Can't send bad output.)"
-        : !active || !interactive ? '(viewing mode)'
-          : button("Send response", async () => { callback(q); await set_state({ active: false }) }))}
+  ${output(output_temp, q =>
+        q instanceof Error ? "(Can't send bad output.)"
+          : !active || !interactive ? '(viewing mode)'
+            : button("Send response", async () => { callback(q); await set_state({ active: false }) }))}
 
-${!interactive ? button("Activate breakpoint", async () => await set_state({ interactive: true }))
-        : button("Deactivate breakpoint", async () => await set_state({ interactive: false }))}
+  ${!interactive ? button("Activate breakpoint", async () => await set_state({ interactive: true }))
+          : button("Deactivate breakpoint", async () => await set_state({ interactive: false }))}
 </div>
 
 <div>
@@ -335,7 +340,7 @@ white-space: pre-wrap
 `
   }
 }
-let retval;
+
 // (in library)
 //const skypack = (library) => import(`https://cdn.skypack.dev/${library}?min`)
 
@@ -380,11 +385,12 @@ const liveDebugger = (id, current_input, config) => {
     //console.log('applying update', update)
     config = { ...config, ...update }
     window.localStorage.setItem(storage_name, JSON.stringify(config))
-    console.debug('new state', config)
+    console.debug('new state', config, update)
 
-    if (!update.code) // don't rerender on code changes (or on output)
+    if (!update.code) {// don't rerender on code changes (or on output)
       console.log(render)
       render_into_div(debugger_div)
+    }
     //debugger_div.replaceChildren(await render({ callback: o => resolve(o), current_input, ...config }))
 
     update_local_copy(config)
@@ -396,7 +402,7 @@ const liveDebugger = (id, current_input, config) => {
     //console.log("HERE!", render)
     const torender = render({ callback: o => resolve(o), current_input, ...config })
     //console.log(torender)
-    div.replaceChildren(torender)
+    torender ? div.replaceChildren(torender): undefined
   }
 
   //console.log('initially rendering debugger')
