@@ -2,6 +2,37 @@
 
 <head>
   <script type="module" src="./index.js"></script>
+  <style>
+    #game-board {
+      display: grid;
+      grid-template-columns: 100px 100px 100px 100px 100px;
+      grid-template-rows: 100px 100px 100px 100px 100px;
+      justify-content: center;
+      padding: 20px;
+    }
+    #game-board div {
+      background: #d9d9d9;
+      border: 2px solid black;
+      width: 100px;
+      height: 100px;
+    }
+    #game-board div.user-next {
+      background: blue;
+    }
+    #game-board div.correct-next {
+      background: green;
+    }
+    #game-board img {
+      height: 100px;
+      width: 100px;
+      cursor: grab;
+      position: absolute; /* layer images */
+      object-fit: scale-down; /* fit in cell */
+    }
+    textarea {
+      font-family: monospace !important;
+    }
+  </style>
 </head>
 
 <body>
