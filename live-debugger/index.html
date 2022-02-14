@@ -40,22 +40,12 @@
   <script type="module">
     import { liveDebugger} from './library.js'
 
-    // *******************
-    // Important variables
-    // *******************
-
     var size = 5
 
-    var heroX = 0;
-    var heroY = 0;
-    var enemyX = 3;
-    var enemyY = 3;
 
-
-
-    // ***********************
-    // Building the game board
-    // ***********************
+    // *************************
+    // Setting up the game board
+    // *************************
 
     var gameBoard = document.getElementById('game-board');
     for (var y = 0; y < size; y++) {
@@ -69,11 +59,11 @@
 
     var hero = document.createElement('img');
     hero.src = "images/mario.png";
-    gameBoard.querySelector('div[data-x="' + heroX + '"][data-y="' + heroY + '"').appendChild(hero);
+    gameBoard.querySelector('div[data-x="3"][data-y="2"').appendChild(hero);
 
     var enemy = document.createElement('img');
     enemy.src = "images/bowser.png";
-    gameBoard.querySelector('div[data-x="' + enemyX + '"][data-y="' + enemyY + '"').appendChild(enemy);
+    gameBoard.querySelector('div[data-x="4"][data-y="4"').appendChild(enemy);
 
 
 
@@ -113,30 +103,39 @@
     // ***********************
 
     function calculateEnemyMove() {
+      // Clear existing blue square
+      var oldNext = gameBoard.querySelector("div.user-next");
+      if (oldNext) {
+        oldNext.classList.remove("user-next");
+      }
+
+      // Get player positions
       var heroX = +hero.parentElement.dataset.x
       var heroY = +hero.parentElement.dataset.y
       var enemyX = +enemy.parentElement.dataset.x
       var enemyY = +enemy.parentElement.dataset.y
 
-      var output = liveDebugger('id1', {
-        heroX,
-        heroY,
-        enemyX,
-        enemyY,
+      // Calculate enemy direction
+      var enemyDirection = liveDebugger('id1', {
+        heroX: heroX,
+        heroY: heroY,
+        enemyX: enemyX,
+        enemyY: enemyY,
       });
 
-      var oldNext = gameBoard.querySelector("div.user-next");
-      if (oldNext) {
-        oldNext.classList.remove("user-next");
+      // Set up new blue square
+      var nextX = enemyX, nextY = enemyY;
+      if (enemyDirection === 'left') {
+        nextX--;
+      } else if (enemyDirection === 'right') {
+        nextX++;
+      } else if (enemyDirection === 'up') {
+        nextY--;
+      } else if (enemyDirection === 'down') {
+        nextY++;
       }
-      if (output) {
-        var nextX = output[0];
-        var nextY = output[1];
-        if (typeof nextX === 'number' && typeof nextY === 'number') {
-          console.log('div[data-x="' + nextX + '"][data-y="' + nextY + '"]')
-          gameBoard.querySelector('div[data-x="' + nextX + '"][data-y="' + nextY + '"]').classList.add("user-next");
-        }
-      }
+
+      gameBoard.querySelector('div[data-x="' + nextX + '"][data-y="' + nextY + '"]').classList.add("user-next");
     }
     calculateEnemyMove();
 
