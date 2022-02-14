@@ -1,3 +1,10 @@
+import { html } from 'https://cdn.skypack.dev/htl'
+import inspector from 'https://cdn.skypack.dev/@observablehq/inspector@3.2.2/dist/inspector.js'
+const Inspector = inspector.Inspector
+
+import { EditorState, EditorView, basicSetup } from 'https://cdn.skypack.dev/@codemirror/next/basic-setup'
+import { javascript } from 'https://cdn.skypack.dev/@codemirror/next/lang-javascript'
+
 const split_view = ({ parent = document.createElement('div'), left = parent.childNodes, right = [], /*top, bottom*/ initial_width = '75%' } = {}) => {
   // TODO add top/bottom support using https://github.com/1milligram/html-dom/blob/master/public/demo/create-resizable-split-views/direction.html
 
@@ -121,12 +128,14 @@ display: flex;
   return parent
 }
 
-const debugger_interface = async ({ set_state }) => {
 
-  const skypack = (library) => import(`https://cdn.skypack.dev/${library}?min`)
-  const html = (await skypack("htl")).html
-  const Inspector = (await skypack("@observablehq/inspector@3.2.2/dist/inspector.js")).default.Inspector
-  const inspector_style = (await (await fetch('https://raw.githubusercontent.com/observablehq/inspector/main/src/style.css')).text())
+const debugger_interface = ({ set_state }) => {
+
+  //const skypack = (library) => import(`https://cdn.skypack.dev/${library}?min`)
+  //const html = (await skypack("htl")).html
+
+  //const Inspector = (await skypack("@observablehq/inspector@3.2.2/dist/inspector.js")).default.Inspector
+  //const inspector_style = (await (await fetch('https://raw.githubusercontent.com/observablehq/inspector/main/src/style.css')).text())
   function inspect(value) {
     const root = document.createElement("DIV");
     new Inspector(root).fulfilled(value);
@@ -174,18 +183,16 @@ const debugger_interface = async ({ set_state }) => {
     out.onclick = cb
     return out
   }
-  return async ({ current_input, callback, interactive = true, active = true, code, history = [], expected = [], keep=[] }) => {
+  return ({ current_input, callback, interactive = true, active = true, code, history = [], expected = [], keep=[] }) => {
     if (!(history[0]?.input == current_input)) {
       //const no_keep = history.filter((e, i) => !history[i].keep)
       const keepers = history.filter((e, i) => history[i].keep)
-      set_state({ history: [{ input: current_input }, ...keepers] })
+      setTimeout(() => set_state({ history: [{ input: current_input }, ...keepers] }))
       return
     }
     //editor.setOption("readonly", !interactive)
     console.debug('building the editor')
-    const editor = await (async () => {
-      const { EditorState, EditorView, basicSetup } = await skypack('@codemirror/next/basic-setup')
-      const { javascript } = await skypack('@codemirror/next/lang-javascript')
+    const editor = (() => {
 
       const updateViewOf = EditorView.updateListener.of((update) => {
         // HACKs here to report state and maintain our state
@@ -208,8 +215,11 @@ const debugger_interface = async ({ set_state }) => {
       return view.dom
     })()
     console.debug(current_input, callback, interactive, active)
+    retval = compute_output(JSON.parse(current_input), editor.value)
     if (!interactive) {
-      callback(compute_output(JSON.parse(current_input), editor.value))
+      console.log("calling callback", current_input, editor.value)
+      
+      //callback(compute_output(JSON.parse(current_input), editor.value))
     }
     console.debug('rendering component', editor)
     const output_temp = output(editor, q => {
@@ -309,6 +319,7 @@ ${history.map((item, i) =>
 </table> 
 </div>
 </div>
+<link rel="stylesheet" href="./inspector.css">
 <style>
 #livedebug {
 border: 1px solid black
@@ -316,7 +327,7 @@ border: 1px solid black
 #editor {
 width: 100%
 }
-${inspector_style}
+
 .observablehq--inspect {
 white-space: pre-wrap
 }
@@ -324,15 +335,15 @@ white-space: pre-wrap
 `
   }
 }
-
+let retval;
 // (in library)
-const skypack = (library) => import(`https://cdn.skypack.dev/${library}?min`)
+//const skypack = (library) => import(`https://cdn.skypack.dev/${library}?min`)
 
-console.log('getting external library htl')
-const html = (await skypack("htl")).html
-console.log('got it')
+//console.log('getting external library htl')
+//const html = (await skypack("htl")).html
+//console.log('got it')
 
-const liveDebugger = async (id, current_input, config) => {
+const liveDebugger = (id, current_input, config) => {
   current_input = JSON.stringify(current_input)
   const storage_name = 'live_debugger_config'
 
@@ -362,16 +373,17 @@ const liveDebugger = async (id, current_input, config) => {
     //document.body.appendChild(debugger_div)
   }
 
-  let resolve = undefined
-  const p = new Promise(r => resolve = r)
+  // let resolve = undefined
+  // const p = new Promise(r => resolve = r)
 
-  const set_state = async update => {
+  const set_state = update => {
     //console.log('applying update', update)
     config = { ...config, ...update }
     window.localStorage.setItem(storage_name, JSON.stringify(config))
     console.debug('new state', config)
 
     if (!update.code) // don't rerender on code changes (or on output)
+      console.log(render)
       render_into_div(debugger_div)
     //debugger_div.replaceChildren(await render({ callback: o => resolve(o), current_input, ...config }))
 
@@ -379,14 +391,19 @@ const liveDebugger = async (id, current_input, config) => {
   }
 
   //console.log('getting debugger interface')
-  const render = await debugger_interface({ set_state, code: config.code, interactive: config.interactive })
-  const render_into_div = async div => debugger_div.replaceChildren(await render({ callback: o => resolve(o), current_input, ...config }))
+  const render = debugger_interface({ set_state, code: config.code, interactive: config.interactive })
+  const render_into_div = div => {
+    //console.log("HERE!", render)
+    const torender = render({ callback: o => resolve(o), current_input, ...config })
+    //console.log(torender)
+    div.replaceChildren(torender)
+  }
 
   //console.log('initially rendering debugger')
   render_into_div(debugger_div)
   //debugger_div.replaceChildren(await render({ callback: o => resolve(o), current_input, ...config }))
   console.debug('rendered')
-  return p
+  return retval
 }
 
 export { liveDebugger, html}

@@ -81,7 +81,7 @@ font-family: monospace !important;
     let [protag_y, protag_x] = divmod(+protag.parentElement.dataset.id);
     let [enemy_y, enemy_x] = divmod(+enemy.parentElement.dataset.id);
     // Define Bowser's next move
-    let [user_next_x, user_next_y] = [enemy_x + 1, enemy_y]/*liveDebugger('id1', {
+    let [user_next_x, user_next_y] = liveDebugger('id1', {
       protag_x,
       protag_y,
       enemy_x,
