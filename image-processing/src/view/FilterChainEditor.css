@@ -12,7 +12,7 @@ input, select, button {
   margin: 16px;
   margin-bottom: 48px;
   padding: 16px;
-  
+
   display: flex;
   flex-flow: row wrap;
   position: relative;
@@ -130,6 +130,6 @@ input, select, button {
   height: 150px;
 }
 
-canvas.mirrored {
+.mirrored {
   transform: scaleX(-1);
 }

@@ -76,7 +76,7 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
       <div className="card-right">
         {result?.type === 'image' &&
           <>
-            <DomNode node={result.source}/>
+            <DomNode node={result.source} className={isMirrored ? "mirrored" : ""}/>
             <div className="output-desc">
               an image
             </div>
