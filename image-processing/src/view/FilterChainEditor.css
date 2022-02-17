@@ -1,14 +1,24 @@
-.filter {
-  background: hsl(30,100%,97%);
-  box-shadow: 0px 2px 4px 3px rgba(0, 0, 0, 0.2);
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+input, select, button {
+  font: inherit;
 }
 
 .card {
-  margin: 10px;
-  padding: 10px;
+  margin: 16px;
+  margin-bottom: 48px;
+  padding: 16px;
 
   display: flex;
+  flex-flow: row wrap;
   position: relative;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(20,20,20,0.2);
 }
 
 .card-left {
@@ -24,6 +34,7 @@
 
 .card-right canvas {
   width: 100%;
+  border-radius: 8px;
 }
 
 .chrome-picker {
@@ -34,12 +45,19 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.5)
+  /* max-height: calc(100vh - 36px); */
 }
 
 .scroller {
   overflow-y: auto;
-  height: 100%;
+}
+
+.flipmove {
+  background: linear-gradient(to right, transparent calc(50% - 2px), #4095d2 calc(50% - 2px), #4095d2 calc(50% + 2px), transparent calc(50% + 2px));
+}
+
+.filter-chain-editor-title {
+  padding-left: 16px;
 }
 
 .card h1 {
@@ -52,18 +70,66 @@
 }
 
 .card-controls {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
+  width: 100%;
   display: flex;
+  flex-flow: row-reverse nowrap;
+  margin-top: 16px;
 }
 
 .card-controls button {
   width: 30px;
   height: 30px;
+  background: #ccc;
+  border: 0;
+  line-height: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  margin-left: 16px;
+  transition: 0.1s ease-out;
+}
+.card-controls .button-move:hover {
+  background: #1CCFE3;
+}
+.card-controls .button-remove:hover {
+  background: #E3301C;
+}
+
+.button-add {
+  padding: 2px 8px;
+  background: #ccc;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.1s ease-out;
+}
+
+.tag {
+  position: absolute;
+  width: 100%;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: -16px;
+}
+.tag.tag-input {
+  top: -16px;
+}
+.tag.tag-output {
+  bottom: -16px;
+}
+.card .tag span {
+  background: #4095d2;
+  color: white;
+  padding: 2px 5px;
+  border-radius: 3px;
 }
 
 .react-colorful {
   width: 150px;
   height: 150px;
+}
+
+.mirrored {
+  transform: scaleX(-1);
 }
