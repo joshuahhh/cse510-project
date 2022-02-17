@@ -77,9 +77,9 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
         {result?.type === 'image' &&
           <>
             <DomNode node={result.source}/>
-            {/* <div className="output-desc">
+            <div className="output-desc">
               an image
-            </div> */}
+            </div>
             </>
         }
         {result?.type === 'contours' &&
@@ -126,9 +126,9 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
                 return canvas;
               })()}/>
             }
-            {/* <div className="output-desc">
+            <div className="output-desc">
               a contour
-            </div> */}
+            </div>
           </>
         }
         {result?.type === 'point' &&
@@ -150,7 +150,7 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
               })()}/>
             }
             <div className="output-desc">
-              Point: ({(() => {
+              a point: ({(() => {
                 let x = result.point.x;
                 if (isMirrored && originalImage) {
                   x = dims(originalImage)[0] - x;
