@@ -75,7 +75,7 @@ function update() {
 
                 window.localStorage.setItem(localStorageKey, JSON.stringify(newFilterChain));
             }}
-            input={globalState.input} results={globalState.results}
+            input={globalState.input} results={globalState.results} isMirrored={false}
         />, globalState.mountingLocation)
     } else {
         // TODO: what if it's not mounted yet?

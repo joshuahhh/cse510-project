@@ -1,6 +1,7 @@
 import React from 'react';
+import { MdOutlineAddCircleOutline } from "react-icons/md";
 import FilterEditor from './FilterEditor';
-import { filterSpecs, FilterUse, newFilterUse } from '../model/filters';
+import { FilterSpec, filterSpecs, FilterUse, newFilterUse } from '../model/filters';
 import { RunnerResults } from '../model/FilterChainRunner';
 import FlipMove from 'react-flip-move';
 import styles from './FilterChainEditor.css';
@@ -12,9 +13,11 @@ export interface FilterChainEditorProps {
 
   input: HTMLVideoElement | HTMLCanvasElement;
   results: RunnerResults | undefined;
+
+  isMirrored: boolean;
 }
 
-function FilterChainEditor({filterChain, setFilterChain, input, results}: FilterChainEditorProps) {
+function FilterChainEditor({filterChain, setFilterChain, input, results, isMirrored}: FilterChainEditorProps) {
   const [addFilterSelection, setAddFilterSelection] = React.useState<string>(filterSpecs[0].name)
 
   return (
@@ -26,14 +29,16 @@ function FilterChainEditor({filterChain, setFilterChain, input, results}: Filter
           <h1>Input</h1>
         </div>
       </div> */}
+      <h1 className="filter-chain-editor-title">Image Processing Pipeline</h1>
       <div className="scroller">
-        <FlipMove>
+        <FlipMove className="flipmove">
           {filterChain.map((filterUse, i) =>
             <FilterEditor
               key={filterUse.id}
               filterUse={filterUse}
               result={results?.intermediate[filterUse.id]}
               originalImage={input || undefined}
+              isMirrored={isMirrored}
               setFilterUse={(newFilterUse) => {
                 const newFilterChain = filterChain.slice();
                 newFilterChain[i] = newFilterUse;
@@ -66,19 +71,33 @@ function FilterChainEditor({filterChain, setFilterChain, input, results}: Filter
         <div className="card filter">
           <div className="card-left">
             <div className="card-left-top">
-              {/* TODO: Organize filters by type (image -> image, etc) */}
-              <select value={addFilterSelection} onChange={(ev) => setAddFilterSelection(ev.target.value)} style={{fontSize: "200%"}}>
-                {filterSpecs.map((filterSpec) =>
-                  <option key={filterSpec.name} value={filterSpec.name}>{filterSpec.name}</option>
-                )}
+              <select value={addFilterSelection} onChange={(ev) => setAddFilterSelection(ev.target.value)}>
+                {
+                  // organize specs by input->output type
+                  Object.entries(filterSpecs
+                    .reduce((acc, filterSpec) => {
+                      const key = `${filterSpec.inputType} → ${filterSpec.outputType}`;
+                      acc[key] = [...(acc[key] || []), filterSpec];
+                      return acc;
+                    }, {} as any) as Record<string, FilterSpec[]>)
+                    .map(([label, specs]) =>
+                      <optgroup label={label} key={label}>
+                        {
+                          specs.map(filterSpec =>
+                            <option key={filterSpec.name} value={filterSpec.name}>{filterSpec.name}</option>
+                          )
+                        }
+                      </optgroup>
+                    )
+                }
               </select>
-              <button onClick={() => setFilterChain([...filterChain, newFilterUse(addFilterSelection)])} style={{fontSize: "200%"}}>Add</button>
+              <button className="button-add" onClick={() => setFilterChain([...filterChain, newFilterUse(addFilterSelection)])}><MdOutlineAddCircleOutline /> Add</button>
             </div>
           </div>
         </div>
         <div className="card">
           <div className="card-left">
-            <h1>Output</h1>
+            <h2>Output</h2>
           </div>
           <div className="card-right">
             <span style={{fontSize: "400%"}}>↑</span>
