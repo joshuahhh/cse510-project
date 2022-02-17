@@ -101,7 +101,6 @@ function FilterChainEditor({filterChain, setFilterChain, input, results, isMirro
           </div>
           <div className="card-right">
             <span style={{fontSize: "400%"}}>↑</span>
-            <canvas id="canvasOutput"/>
             (see above)
           </div>
         </div>
