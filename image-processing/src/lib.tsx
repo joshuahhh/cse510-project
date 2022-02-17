@@ -3,6 +3,7 @@ import FilterChainRunner, { RunnerResults } from './model/FilterChainRunner';
 import { FilterUse, newFilterUse } from './model/filters';
 import ReactDOM from 'react-dom';
 import FilterChainEditorEmbed from './view/FilterChainEditorEmbed';
+import dims from './dims';
 
 interface GlobalState {
     runner: FilterChainRunner;
@@ -59,7 +60,14 @@ export default function imageProcessingTool({input, showTool, isMirrored}: Props
     globalState.isMirrored = isMirrored ?? true;
     update();
 
-    return globalState.results.final;
+    const value = globalState.results.final;
+
+    // HACK: flip x values when mirrored
+    if (globalState.isMirrored && value && value.type === 'point') {
+        value.point.x = dims(input)[0] - value.point.x
+    }
+
+    return value;
 }
 
 function update() {

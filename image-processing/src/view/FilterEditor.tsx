@@ -6,6 +6,7 @@ import { Result } from '../model/FilterChainRunner';
 import DomNode from './DomNode';
 import * as cv from '@techstark/opencv-js';
 import ErrorBoundary from './ErrorBoundary';
+import dims from '../dims';
 
 interface Props {
   filterUse: FilterUse,
@@ -19,14 +20,6 @@ interface Props {
 
   originalImage: HTMLVideoElement | HTMLCanvasElement | undefined;
   isMirrored: boolean;
-}
-
-function dims(source: HTMLVideoElement | HTMLCanvasElement) {
-  if (source instanceof HTMLVideoElement) {
-    return [source.videoWidth, source.videoHeight];
-  } else {
-    return [source.width, source.height];
-  }
 }
 
 const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raiseMe, lowerMe, result, originalImage, isMirrored}: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
