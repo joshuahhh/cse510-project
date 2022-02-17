@@ -11,6 +11,7 @@ interface GlobalState {
     mountingLocation: HTMLDivElement;
     filterChain: FilterUse[];
     showTool: boolean;
+    isMirrored: boolean;
 }
 
 const localStorageKey = 'image-processing-tool-filter-spec';
@@ -37,6 +38,7 @@ function getGlobalState(): GlobalState {
             results: undefined as any,  // same
             mountingLocation,
             showTool: false,
+            isMirrored: true,
         };
         (window as any)._IMAGE_PROCESSING_TOOL_GLOBAL_STATE_ = globalState;
     }
@@ -46,13 +48,15 @@ function getGlobalState(): GlobalState {
 interface Props {
     input: HTMLCanvasElement | HTMLVideoElement;
     showTool?: boolean;
+    isMirrored?: boolean;
 }
 
-export default function imageProcessingTool({input, showTool}: Props) {
+export default function imageProcessingTool({input, showTool, isMirrored}: Props) {
     const globalState = getGlobalState();
 
     globalState.input = input;
-    globalState.showTool = showTool || false;
+    globalState.showTool = showTool ?? false;
+    globalState.isMirrored = isMirrored ?? true;
     update();
 
     return globalState.results.final;
@@ -75,7 +79,7 @@ function update() {
 
                 window.localStorage.setItem(localStorageKey, JSON.stringify(newFilterChain));
             }}
-            input={globalState.input} results={globalState.results} isMirrored={false}
+            input={globalState.input} results={globalState.results} isMirrored={globalState.isMirrored}
         />, globalState.mountingLocation)
     } else {
         // TODO: what if it's not mounted yet?
