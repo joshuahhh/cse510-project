@@ -1,43 +1,9 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background: #eaeff5;
-}
-
-input, select, button {
-  font: inherit;
-}
-
-#root {
-  display: flex;
-  align-content: stretch;
-  justify-content: space-between;
-  align-items: stretch;
-
-  padding: 16px;
-}
-
-.left-panel {
-  flex: 1;
-}
-
-.left-panel video {
-  width: 100%;
-  border-radius: 8px;
-}
-
-.right-panel {
-  width: 50vw;
-}
-
-.video-settings {
-  margin-bottom: 16px;
-}
-
-label {
-  padding-right: 8px;
+.FilterChainEditorEmbed {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 50%;
+    max-width: 800px;
+    height: 100vh;
+    background: #eaeff5;
 }

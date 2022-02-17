@@ -8,7 +8,7 @@ interface FilterChainEditorEmbedProps extends FilterChainEditorProps {}
 function FilterChainEditorEmbed(props: FilterChainEditorEmbedProps) {
     return <div className="FilterChainEditorEmbed">
         <style type="text/css">{styles}</style>
-        <root.div>
+        <root.div style={{height: "100vh"}}>
             {<FilterChainEditor {...props} />}
         </root.div>
     </div>;

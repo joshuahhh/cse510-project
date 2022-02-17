@@ -1,0 +1,20 @@
+body {
+  background: white;
+}
+
+input, select, button {
+  font: inherit;
+}
+
+video {
+  width: 500px;
+  border-radius: 8px;
+}
+
+.video-settings {
+  margin-bottom: 16px;
+}
+
+label {
+  padding-right: 8px;
+}
