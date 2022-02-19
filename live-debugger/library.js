@@ -317,7 +317,7 @@ ${history.map((item, i) =>
     <td>${toggle_keep(i)}</td>
     <td>${inspect(JSON.parse(item.input))}</td>
     <td>${item.expected ? html`${inspect(item.expected.value)} ${remove_expected(i)}` : expected_input(i)}</td>
-    <td>${inspect(general_output(item.input))}</td>
+    <td>${output(general_output(item.input), out => out instanceof Error ? out.message : inspect(out))}</td>
   </tr>
   `
 )}
