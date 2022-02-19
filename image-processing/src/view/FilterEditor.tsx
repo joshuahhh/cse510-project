@@ -1,10 +1,12 @@
 import React from 'react';
+import { MdClose, MdArrowUpward, MdArrowDownward } from "react-icons/md";
 import { filterSpecByName, FilterUse, NumberParameterSpec, ChoiceParameterSpec } from '../model/filters';
 import { RgbColorPicker } from 'react-colorful';
 import { Result } from '../model/FilterChainRunner';
 import DomNode from './DomNode';
 import * as cv from '@techstark/opencv-js';
 import ErrorBoundary from './ErrorBoundary';
+import dims from '../dims';
 
 interface Props {
   filterUse: FilterUse,
@@ -17,17 +19,10 @@ interface Props {
   result: Result | undefined,
 
   originalImage: HTMLVideoElement | HTMLCanvasElement | undefined;
+  isMirrored: boolean;
 }
 
-function dims(source: HTMLVideoElement | HTMLCanvasElement) {
-  if (source instanceof HTMLVideoElement) {
-    return [source.videoWidth, source.videoHeight];
-  } else {
-    return [source.width, source.height];
-  }
-}
-
-const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raiseMe, lowerMe, result, originalImage}: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
+const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raiseMe, lowerMe, result, originalImage, isMirrored}: Props, ref: React.ForwardedRef<HTMLDivElement>) => {
   // console.log(filterUse.id, "render", canvas);
 
   const filterSpec = filterSpecByName(filterUse.specName);
@@ -37,9 +32,10 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
 
   return <div className="card filter" ref={ref}>
     <ErrorBoundary>
+      <div className="tag tag-input"><span>{filterSpec.inputType}</span></div>
       <div className="card-left">
         <div className="card-left-top">
-          <h1>{filterSpec.name}</h1>
+          <h2>{filterSpec.name}</h2>
           {filterSpec.parameters.map((parameter) =>
             <div key={parameter.name}>
               <div>{parameter.name}</div>
@@ -66,14 +62,14 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
             </div>
           )}
         </div>
-        <div className="card-left-bottom">
+        {/* <div className="card-left-bottom">
           <div style={{fontSize: "50%", marginTop: 15}}>{filterUse.id}</div>
-        </div>
+        </div> */}
       </div>
       <div className="card-right">
         {result?.type === 'image' &&
           <>
-            <DomNode node={result.source}/>
+            <DomNode node={result.source} className={isMirrored ? "mirrored" : ""}/>
             <div className="output-desc">
               an image
             </div>
@@ -84,6 +80,7 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
             {originalImage && dims(originalImage)[0] > 0 &&
               <DomNode node={(() => {
                 const canvas = document.createElement('canvas');
+                canvas.classList.toggle('mirrored', isMirrored);
                 [canvas.width, canvas.height] = dims(originalImage);
                 const ctx = canvas.getContext("2d")!;
                 ctx.drawImage(originalImage, 0, 0);
@@ -107,6 +104,7 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
             {originalImage && dims(originalImage)[0] > 0 &&
               <DomNode node={(() => {
                 const canvas = document.createElement('canvas');
+                canvas.classList.toggle('mirrored', isMirrored);
                 [canvas.width, canvas.height] = dims(originalImage);
                 const ctx = canvas.getContext("2d")!;
                 ctx.drawImage(originalImage, 0, 0);
@@ -131,6 +129,7 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
             {originalImage && dims(originalImage)[0] > 0 &&
               <DomNode node={(() => {
                 const canvas = document.createElement('canvas');
+                canvas.classList.toggle('mirrored', isMirrored);
                 [canvas.width, canvas.height] = dims(originalImage);
                 const ctx = canvas.getContext("2d")!;
                 ctx.drawImage(originalImage, 0, 0);
@@ -144,7 +143,13 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
               })()}/>
             }
             <div className="output-desc">
-              a point: ({result.point.x.toFixed(3)}, {result.point.y.toFixed(3)})
+              a point: ({(() => {
+                let x = result.point.x;
+                if (isMirrored && originalImage) {
+                  x = dims(originalImage)[0] - x;
+                }
+                return x.toFixed(3);
+              })()}, {result.point.y.toFixed(3)})
             </div>
           </>
         }
@@ -160,10 +165,11 @@ const FilterEditor = React.forwardRef(({filterUse, setFilterUse, deleteMe, raise
         }
       </div>
       <div className="card-controls">
-        {<button onClick={raiseMe} style={{visibility: raiseMe ? 'visible' : 'hidden'}}>⇧</button>}
-        {<button onClick={lowerMe} style={{visibility: lowerMe ? 'visible' : 'hidden'}}>⇩</button>}
-        <button onClick={deleteMe}>❌</button>
+        <button className="button-remove" onClick={deleteMe} title="Remove"><MdClose /></button>
+        {<button className="button-move" onClick={raiseMe} title="Move up" style={{visibility: raiseMe ? 'visible' : 'hidden'}}><MdArrowUpward /></button>}
+        {<button className="button-move" onClick={lowerMe} title="Move down" style={{visibility: lowerMe ? 'visible' : 'hidden'}}><MdArrowDownward /></button>}
       </div>
+      <div className="tag tag-output"><span>{filterSpec.outputType}</span></div>
     </ErrorBoundary>
   </div>;
 })
@@ -178,7 +184,23 @@ function numberEditor(parameter: NumberParameterSpec, value: any, setValue: (val
 }
 
 function colorEditor(value: any, setValue: (value: any) => void) {
-  return <RgbColorPicker color={{r: value[0] * 255, g: value[1] * 255, b: value[2] * 255}} onChange={(color) => setValue([color.r / 255, color.g / 255, color.b / 255])} />
+  const EyeDropper = (window as any).EyeDropper; // undefined if not supported
+
+  async function openEyeDropper() {
+    const eyedropper = new EyeDropper();
+    try {
+      const result = await eyedropper.open();
+      const rgb = result.sRGBHex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i).slice(1).map((e: string) => parseInt(e, 16) / 255);
+      setValue(rgb);
+    } catch {}
+  }
+
+  return <div>
+    <RgbColorPicker color={{r: value[0] * 255, g: value[1] * 255, b: value[2] * 255}} onChange={(color) => setValue([color.r / 255, color.g / 255, color.b / 255])} />
+    {
+      EyeDropper && <button onClick={openEyeDropper}>Select color (eyedropper)</button>
+    }
+  </div>
 }
 
 function choiceEditor(parameter: ChoiceParameterSpec, value: any, setValue: (value: any) => void) {

@@ -31,10 +31,18 @@ function DemoEmbedLib() {
         }
     }, mspf);
 
+    const outputJson = (() => {
+        try {
+            return JSON.stringify(output);
+        } catch {
+            return 'cannot represent as JSON'
+        }
+    })()
+
     return <>
         {/* TODO: fix width/height nonsense */}
         <div style={{position: 'relative'}}>
-            <Webcam width={300} height={225} ref={setWebcam}/>
+            <Webcam width={300} height={225} ref={setWebcam} mirrored={true}/>
             <canvas width={300} height={225} ref={setCanvas} style={{position: 'absolute', left: 0, top: 0}}/>
         </div>
         <select value={mspf} onChange={(ev) => setMspf(+ev.target.value)} style={{fontSize: "200%"}}>
@@ -43,7 +51,7 @@ function DemoEmbedLib() {
             )}
         </select>
         <pre>
-            {JSON.stringify(output)}
+            {outputJson}
         </pre>
     </>;
 }
