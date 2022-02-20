@@ -29,7 +29,7 @@ width: 100%;*/
 /*width: 75%;*/
 
 /* Misc */
-display: flex;
+/*display: flex;*/
 }
 .split-view-resizer {
 background-color: #cbd5e0;
@@ -347,9 +347,10 @@ white-space: pre-wrap
 //const html = (await skypack("htl")).html
 //console.log('got it')
 
-const liveDebugger = (id, current_input, config) => {
-  current_input = JSON.stringify(current_input)
-  const storage_name = 'live_debugger_config'
+const liveDebugger = ({ input, showTool=false }, config) => {
+  let current_input = JSON.stringify(input)
+
+  const storage_name = 'live_debugger_config::' + window.location.href
 
   config = config || JSON.parse(window.localStorage.getItem(storage_name) || "false") || {
     interactive: true,
@@ -371,7 +372,7 @@ const liveDebugger = (id, current_input, config) => {
   }
   
   let debugger_div = document.querySelector('div#live_debugger')
-  if (!debugger_div) {
+  if (!debugger_div && showTool) {
     debugger_div = html`<div id="live_debugger"></div>`
     split_view({ parent: document.body, left: document.body.childNodes, right: debugger_div })
     //document.body.appendChild(debugger_div)
@@ -401,7 +402,7 @@ const liveDebugger = (id, current_input, config) => {
     //console.log("HERE!", render)
     const torender = render({ callback: o => resolve(o), current_input, ...config })
     //console.log(torender)
-    torender ? div.replaceChildren(torender): undefined
+    showTool && torender ? div.replaceChildren(torender): undefined
   }
 
   //console.log('initially rendering debugger')

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<head>
+</head>
+<body>
+  What's your name?
+  <div>
+  <input id="name"></input>
+  </div>
+  Your name is <span id="nameUpper"></span>.
+
+  <script type="module">
+    import { liveDebugger} from './library.js'
+    var nameEl = document.querySelector('#name')
+    nameEl.oninput = function () {
+      var uppercaseName = liveDebugger({input: nameEl.value, showTool: true})
+      document.querySelector('#nameUpper').textContent = uppercaseName
+    }
+  </script>
+</body>

@@ -124,11 +124,14 @@
       var enemyDirection = 'left';
 
       // Option 2: Using live tool
-      var enemyDirection = liveDebugger('id1', {
-        heroX: heroX,
-        heroY: heroY,
-        enemyX: enemyX,
-        enemyY: enemyY,
+      var enemyDirection = liveDebugger({
+        input: {
+          heroX: heroX,
+          heroY: heroY,
+          enemyX: enemyX,
+          enemyY: enemyY,
+        },
+        showTool: true
       });
 
       // Set up new blue square
