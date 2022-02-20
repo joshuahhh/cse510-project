@@ -8,7 +8,6 @@ import { javascript } from 'https://cdn.skypack.dev/@codemirror/next/lang-javasc
 let retval;
 
 const split_view = ({ parent = document.createElement('div'), left = parent.childNodes, right = [], /*top, bottom*/ initial_width = '75%' } = {}) => {
-  // TODO add top/bottom support using https://github.com/1milligram/html-dom/blob/master/public/demo/create-resizable-split-views/direction.html
 
   const left_nodes = left.nodeName !== undefined ? [left] : [...left]  // NOTE preserve pointers before mutating below
   const right_nodes = right.nodeName !== undefined ? [right] : [...right]
@@ -176,7 +175,7 @@ const debugger_interface = ({ set_state }) => {
       }))
     Object.defineProperty(ui, 'value', {
       get: () => cache,
-      set: newVal => undefined  // TODO maybe these can be used as primary sources/value stores as well?
+      set: newVal => undefined
     })
     return ui
   }
