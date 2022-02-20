@@ -362,13 +362,17 @@ ${history.map((item, i) =>
   width: 100%;
 }
 td {
-  padding:15px;
+  padding-left:15px; padding-right:15px;
 }
 #livedebug {
 border: 1px solid black
 }
 #editor {
 width: 100%
+}
+#livedebug pre {
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 .observablehq--inspect {
