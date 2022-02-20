@@ -216,8 +216,9 @@ const debugger_interface = ({ set_state }) => {
     if (!(history[0]?.input == current_input)) {
       console.log('fixing history')
       //const no_keep = history.filter((e, i) => !history[i].keep)
-      const keepers = history.filter((e, i) => history[i].keep)
-      setTimeout(() => set_state({ history: [{ input: current_input }, ...keepers] }))
+      const keepers = history.filter((e, i) => history[i].keep && history[i].input != current_input)
+      const first = history.find(e => e.input == current_input) || { input: current_input }
+      setTimeout(() => set_state({ history: [first, ...keepers] }))
       return undefined  // render nothing, will rerender momentarily
     } 
     if (!interactive) {
