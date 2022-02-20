@@ -133,3 +133,7 @@ input, select, button {
 .mirrored {
   transform: scaleX(-1);
 }
+
+.bottom-stuff {
+  margin: 16px 32px;
+}

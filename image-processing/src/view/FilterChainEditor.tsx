@@ -19,6 +19,7 @@ export interface FilterChainEditorProps {
 
 function FilterChainEditor({filterChain, setFilterChain, input, results, isMirrored}: FilterChainEditorProps) {
   const [addFilterSelection, setAddFilterSelection] = React.useState<string>(filterSpecs[0].name)
+  const [copyPasteMessage, setCopyPasteMessage] = React.useState('');
 
   return (
     <div className="FilterChainEditor">
@@ -103,6 +104,28 @@ function FilterChainEditor({filterChain, setFilterChain, input, results, isMirro
             <span style={{fontSize: "400%"}}>↑</span>
             (see above)
           </div>
+        </div>
+        <div className="bottom-stuff">
+          <button className="button-add" onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(JSON.stringify(filterChain));
+              setCopyPasteMessage('Copied successfully');
+            } catch (e) {
+              setCopyPasteMessage('Copy unsuccessful' + (e instanceof Error ? ': ' + e.message : ''));
+            }
+          }}>Copy to clipboard</button>
+          {' '}
+          <button className="button-add" onClick={async () => {
+            try {
+              const text = await navigator.clipboard.readText();
+              setFilterChain(JSON.parse(text));
+              setCopyPasteMessage('Pasted successfully');
+            } catch (e) {
+              setCopyPasteMessage('Paste unsuccessful' + (e instanceof Error ? ': ' + e.message : ''));
+            }
+          }}>Paste from clipboard</button>
+          {' '}
+          {copyPasteMessage}
         </div>
       </div>
     </div>
