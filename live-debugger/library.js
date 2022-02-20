@@ -196,7 +196,7 @@ const debugger_interface = ({ set_state }) => {
         const { dom } = update.view
         dom.value = newCode
         if (newCode == code) return
-        set_state({ code: newCode })
+        set_state({ code: newCode }, true)
         code = newCode
         dom.dispatchEvent(new CustomEvent('input'))
       })
@@ -249,12 +249,20 @@ const debugger_interface = ({ set_state }) => {
     // history = []  // of inputs?
     // expected = []  // of values? store as an object like {value} to avoid ambiguity about expected undefined
     
+    const expected_changed = html`<input>`
+    const inputs_refs = {}
     const expected_input = i => {
       const el = html`<input>`
+      el.value = history[i].expected ? JSON.stringify(history[i].expected.value) : ''
       el.oninput = () => {
-        history[i].expected = { value: JSON.parse(el.value) }
-        set_state({ history })
+        try {
+          history[i].expected = { value: JSON.parse(el.value) }
+          set_state({ history }, true)
+        } catch (e) {
+        }
+        expected_changed.dispatchEvent(new CustomEvent('input'))
       }
+      inputs_refs[i] = el
       return el
     }
 
@@ -319,9 +327,20 @@ ${history.map((item, i) =>
   <tr style="color: ">
     <td>${toggle_keep(i)}</td>
     <td>${inspect(JSON.parse(item.input))}</td>
-    <td>${item.expected ? html`${inspect(item.expected.value)} ${remove_expected(i)}` : expected_input(i)}</td>
+    <td>${expected_input(i)} ${output(expected_changed, _ => {
+      console.log(inputs_refs[i].value)
+      if (inputs_refs[i].value != "") {
+        try {
+          console.log(inputs_refs[i].value)
+          JSON.parse(inputs_refs[i].value)
+          return ''
+        } catch (e) {
+          return html`<span style="color:red"> parse failed</span>`
+        }
+      } else return ''
+    })}</td>
     <td>${output(general_output(item.input), out => out instanceof Error ? out.message : inspect(out))}</td>
-    <td>${output(general_output(item.input), out => !item.expected ? '' : JSON.stringify(item.expected.value) == JSON.stringify(out) ? html`<span style="background-color: lightgreen">true</span>` : html`<span style="background-color: salmon">false</span>`)}</td>
+    <td>${output([general_output(item.input), expected_changed], out => !item.expected ? '' : JSON.stringify(item.expected.value) == JSON.stringify(out) ? html`<span style="background-color: lightgreen">true</span>` : html`<span style="background-color: salmon">false</span>`)}</td>
   </tr>
   `
 )}
@@ -399,13 +418,13 @@ const liveDebugger = ({ input, showTool=false }, config) => {
   // let resolve = undefined
   // const p = new Promise(r => resolve = r)
 
-  const set_state = update => {
+  const set_state = (update, noRerender=false) => {
     //console.log('applying update', update)
     config = { ...config, ...update }
     window.localStorage.setItem(storage_name, JSON.stringify(config))
     console.debug('new state', config, update)
 
-    if (!update.code) {// don't rerender on code changes (or on output)
+    if (!noRerender) {
       console.log(render)
       render_into_div(debugger_div)
     }
