@@ -259,7 +259,7 @@ const debugger_interface = ({ set_state }) => {
     }
 
     const remove_expected = i => {
-      const el = html`<button>Remove</button>`
+      const el = html`<button>Modify</button>`
       el.onclick = () => {
         delete history[i].expected
         set_state({ history })
@@ -284,13 +284,15 @@ const debugger_interface = ({ set_state }) => {
     
     return html`
 <div id="livedebug">
+<div id="inputBox">
 Input: <div id="input">${inspect(JSON.parse(current_input))}</div>
-
+</div>
 <div id="editor">${editor}</div>
-
+<div id="outputBox">
 Output:
 <div id="output">
 ${output(output_temp, q => q instanceof Error ? q : inspect(q))}
+</div>
 </div>
 
 <div style="display: none"> <!-- not allowing toggle right now -->
@@ -303,7 +305,7 @@ ${output(output_temp, q => q instanceof Error ? q : inspect(q))}
           : button("Deactivate breakpoint", async () => await set_state({ interactive: false }))}
 </div>
 
-<div>
+<div id="testTable">
 <table>
 <tr>
   <th>Keep</th>
@@ -326,8 +328,20 @@ ${history.map((item, i) =>
 </table> 
 </div>
 </div>
+
+</div>
 <link rel="stylesheet" href="./inspector.css">
 <style>
+#inputBox, #outputBox, #testTable {
+  border: 1px solid black; margin: 2px; padding: 2px
+  }
+
+#testTable table {
+  width: 100%
+}
+td {
+  padding:5px
+}
 #livedebug {
 border: 1px solid black
 }
