@@ -138,6 +138,7 @@ const debugger_interface = ({ set_state }) => {
   //const Inspector = (await skypack("@observablehq/inspector@3.2.2/dist/inspector.js")).default.Inspector
   //const inspector_style = (await (await fetch('https://raw.githubusercontent.com/observablehq/inspector/main/src/style.css')).text())
   function inspect(value) {
+    return html`<pre>${JSON.stringify(value, null, 2)}</pre>`
     const root = document.createElement("DIV");
     new Inspector(root).fulfilled(value);
     const element = root.firstChild;
@@ -326,7 +327,7 @@ ${output(output_temp, q => q instanceof Error ? q : inspect(q))}
 </tr>
 ${history.map((item, i) => 
   html.fragment`
-  <tr style="color: ">
+  <tr>
     <td>${toggle_keep(i)}</td>
     <td>${inspect(JSON.parse(item.input))}</td>
     <td>${expected_input(i)} ${output(expected_changed, _ => {
@@ -412,6 +413,7 @@ const liveDebugger = ({ input, showTool=false }, config) => {
   
   let debugger_div = document.querySelector('div#live_debugger')
   if (!debugger_div && showTool) {
+    document.head.appendChild(html`<link rel="stylesheet" href="./inspector.css"></link>`)
     debugger_div = html`<div id="live_debugger"></div>`
     split_view({ parent: document.body, left: document.body.childNodes, right: debugger_div })
     //document.body.appendChild(debugger_div)
