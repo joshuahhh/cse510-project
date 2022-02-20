@@ -21,7 +21,7 @@ Synthesizer.prototype.play = function(volume, freq) {
     freq = Math.max(0, Math.min(1000, freq));
 
     this.osc.frequency.value = freq;
-    this.gain.gain.value = volume / 100;
+    this.gain.gain.value = Math.pow(volume / 100, 3);
 
     if (!this.started) {
         this.osc.start();
