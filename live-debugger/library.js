@@ -259,6 +259,8 @@ const debugger_interface = ({ set_state }) => {
           history[i].expected = { value: JSON.parse(el.value) }
           set_state({ history }, true)
         } catch (e) {
+          history[i].expected = undefined
+          set_state({ history }, true)
         }
         expected_changed.dispatchEvent(new CustomEvent('input'))
       }
@@ -352,14 +354,14 @@ ${history.map((item, i) =>
 <link rel="stylesheet" href="./inspector.css">
 <style>
 #inputBox, #outputBox, #testTable {
-  border: 1px solid black; margin: 2px; padding: 2px
+  border: 1px solid black; margin: 5px; padding: 2px
   }
 
 #testTable table {
-  width: 100%
+  width: 100%;
 }
 td {
-  padding:5px
+  padding:15px;
 }
 #livedebug {
 border: 1px solid black
