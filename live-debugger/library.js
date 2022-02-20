@@ -307,8 +307,9 @@ ${output(output_temp, q => q instanceof Error ? q : inspect(q))}
 <tr>
   <th>Keep</th>
   <th>Input</th>
-  <th>Expected</th>
+  <th>Expected JSON</th>
   <th>Output</th>
+  <th>Match?</th>
 </tr>
 ${history.map((item, i) => 
   html.fragment`
@@ -317,6 +318,7 @@ ${history.map((item, i) =>
     <td>${inspect(JSON.parse(item.input))}</td>
     <td>${item.expected ? html`${inspect(item.expected.value)} ${remove_expected(i)}` : expected_input(i)}</td>
     <td>${output(general_output(item.input), out => out instanceof Error ? out.message : inspect(out))}</td>
+    <td>${output(general_output(item.input), out => !item.expected ? '' : JSON.stringify(item.expected.value) == JSON.stringify(out) ? html`<span style="background-color: lightgreen">true</span>` : html`<span style="background-color: salmon">false</span>`)}</td>
   </tr>
   `
 )}
@@ -333,7 +335,8 @@ width: 100%
 }
 
 .observablehq--inspect {
-white-space: pre-wrap
+white-space: pre-wrap;
+display: inline;
 }
 </style>
 `
