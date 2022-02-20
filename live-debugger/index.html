@@ -39,7 +39,7 @@
   <div id="game-board">
   </div>
   <script type="module">
-    import { liveDebugger} from './library.js'
+      import { editorWithTestCasesTool } from './library.js'
 
     var size = 5
 
@@ -125,7 +125,7 @@
       var enemyDirection = 'left';
 
       // Option 2: Using live tool
-      var enemyDirection = liveDebugger({
+      var enemyDirection = editorWithTestCasesTool({
         input: {
           heroX: heroX,
           heroY: heroY,

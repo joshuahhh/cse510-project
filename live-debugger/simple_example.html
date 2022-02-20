@@ -9,10 +9,10 @@
   Your name is <span id="nameUpper"></span>.
 
   <script type="module">
-    import { liveDebugger} from './library.js'
+      import { editorWithTestCasesTool } from './library.js'
     var nameEl = document.querySelector('#name')
     nameEl.oninput = function () {
-      var uppercaseName = liveDebugger({input: nameEl.value, showTool: true})
+      var uppercaseName = editorWithTestCasesTool({ input: nameEl.value, showTool: true })
       document.querySelector('#nameUpper').textContent = uppercaseName
     }
   </script>

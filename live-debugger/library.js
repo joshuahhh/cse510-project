@@ -391,7 +391,7 @@ display: inline;
 //const html = (await skypack("htl")).html
 //console.log('got it')
 
-const liveDebugger = ({ input, showTool=false }, config) => {
+const editorWithTestCasesTool = ({ input, showTool = false }, config) => {
   let current_input = JSON.stringify(input)
 
   const storage_name = 'live_debugger_config::' + window.location.href
@@ -457,4 +457,4 @@ const liveDebugger = ({ input, showTool=false }, config) => {
   return retval
 }
 
-export { liveDebugger, html}
+export { editorWithTestCasesTool, html }
