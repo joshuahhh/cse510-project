@@ -2,6 +2,7 @@ import { Mat } from '@techstark/opencv-js';
 import { v4 as uuidv4 } from 'uuid';
 import { GlfxCanvas } from '../glfx/lib';
 import * as cv from '@techstark/opencv-js';
+import dims from '../dims';
 
 export type FilterParameterSpec = { name: string } & ( NumberParameterSpec | ColorParameterSpec | ChoiceParameterSpec );
 export type NumberParameterSpec = {
@@ -199,8 +200,7 @@ export const filterSpecs: FilterSpec[] = [
                 // TODO: skip if already 2d canvas?
                 // TODO: reuse resources?
                 const canvas2d = document.createElement('canvas');
-                canvas2d.width = source.width;
-                canvas2d.height = source.height;
+                [canvas2d.width, canvas2d.height] = dims(source);
                 const ctx = canvas2d.getContext("2d")!;
                 ctx.drawImage(source, 0, 0);
 
@@ -305,6 +305,55 @@ export const filterSpecs: FilterSpec[] = [
                 } else {
                     throw new Error(`unknown contour sizing method: ${parameterValues["Method"]}`);
                 }
+            }
+        }
+    },
+    {
+        name: 'Brightest / darkest point',
+        inputType: 'image',
+        outputType: 'point',
+        parameters: [
+            {
+                name: 'Which?',
+                type: 'choice',
+                default: 'Brightest',
+                choices: ['Brightest', 'Darkest'],
+            },
+        ],
+        operation: {
+            type: 'value',
+            apply: (value, parameterValues) => {
+                if (value.type !== 'image') {
+                    throw new Error(`needs contour input, not ${value.type}`);
+                }
+
+                const brightest = parameterValues['Which?'] === 'Brightest';
+
+                const { source } = value;
+
+                // copy the source to the 2d canvas
+                // TODO: skip if already 2d canvas?
+                // TODO: reuse resources?
+                const canvas2d = document.createElement('canvas');
+                [canvas2d.width, canvas2d.height] = dims(source);
+                const ctx = canvas2d.getContext("2d")!;
+                ctx.drawImage(source, 0, 0);
+
+                var data = ctx.getImageData(0, 0, canvas2d.width, canvas2d.height).data;
+
+                let bestI = 0;
+                let bestBrightness = brightest ? -Infinity : Infinity;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    const brightness = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                    if (brightest ? brightness > bestBrightness : brightness < bestBrightness) {
+                        bestBrightness = brightness;
+                        bestI = i;
+                    }
+                }
+
+                const x = bestI % (4 * canvas2d.width) / 4, y = Math.floor(bestI / (4 * canvas2d.width));
+                return {type: 'point', point: {x, y}};
             }
         }
     }
