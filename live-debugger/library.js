@@ -15,34 +15,37 @@ const split_view = ({ parent = document.createElement('div'), left = parent.chil
 
   const style_text = `
 .container {
-display: flex;
-
-/* Misc */
-
-/*border: 1px solid #cbd5e0;
-height: 16rem;
-width: 100%;*/
-
+  display: flex;
 }
 .container__left {
-/* Initially, the left takes 3/4 width */
-/*width: 75%;*/
-
-/* Misc */
-/*display: flex;*/
+  min-width: 550px;
+  max-width: 60vw;
 }
 .split-view-resizer {
-background-color: #cbd5e0;
-cursor: ew-resize;
-/*height: 100%;*/
-width: 2px;
+  background-color: #cbd5e0;
+  cursor: ew-resize;
+  width: 6px;
+}
+/* resize indicator handle */
+.split-view-resizer::after {
+  content: "...";
+  font-family: "Calibri";
+  letter-spacing: 1px;
+  writing-mode: vertical-rl;
+  position: absolute;
+  border-radius: 100px;
+  top: 50%;
+  text-align: center;
+  transform: translate(-3px, -50%);
+  background: #cbd5e0;
+  padding: 17px 0;
+  width: 12px;
+  line-height: 2px;
+  color: #556A82;
 }
 .container__right {
-/* Take the remaining width */
-flex: 1;
-
-/* Misc */
-display: flex;
+  flex: 1;
+  display: flex;
 }`
   const style = document.createElement('style')
   style.classList.add("split-view-style")
@@ -295,6 +298,7 @@ const debugger_interface = ({ set_state }) => {
     
     return html`
 <div id="livedebug">
+<div class="livedebug-top">
 <div id="inputBox">
 Input: <div id="input">${inspect(JSON.parse(current_input))}</div>
 </div>
@@ -315,9 +319,10 @@ ${output(output_temp, q => q instanceof Error ? q : inspect(q))}
   ${!interactive ? button("Activate breakpoint", async () => await set_state({ interactive: true }))
           : button("Deactivate breakpoint", async () => await set_state({ interactive: false }))}
 </div>
-
-<div id="testTable">
+</div>
+<div id="testTable" class="livedebug-table">
 <table>
+<thead>
 <tr>
   <th>Keep</th>
   <th>Input</th>
@@ -325,6 +330,8 @@ ${output(output_temp, q => q instanceof Error ? q : inspect(q))}
   <th>Output</th>
   <th>Match?</th>
 </tr>
+</thead>
+<tbody>
 ${history.map((item, i) => 
   html.fragment`
   <tr>
@@ -347,6 +354,7 @@ ${history.map((item, i) =>
   </tr>
   `
 )}
+</tbody>
 </table> 
 </div>
 </div>
@@ -354,21 +362,71 @@ ${history.map((item, i) =>
 </div>
 <link rel="stylesheet" href="./inspector.css">
 <style>
-#inputBox, #outputBox, #testTable {
-  border: 1px solid black; margin: 5px; padding: 2px
-  }
+#inputBox, #outputBox, #editor {
+  margin-bottom: 16px;
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+  box-shadow: 0 1px 4px rgba(20,20,20,0.2);
+}
 
 #testTable table {
   width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+td, th {
+  padding: 4px 15px;
+  text-align: left;
 }
 td {
-  padding-left:15px; padding-right:15px;
+  border-left: 1px solid #cbd5e0;
+  border-bottom: 1px solid #cbd5e0;
 }
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #cbd5e0;
+}
+/* Keep column and Match? column */
+td:first-of-type, td:last-of-type {
+  text-align: center;
+  width: 0;
+  white-space: nowrap;
+}
+td:first-of-type input[type=checkbox] {
+  transform: scale(1.5);
+}
+td input {
+  width: 100%;
+  font: inherit;
+  font-family: monospace;
+}
+td .output span {
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
 #livedebug {
-border: 1px solid black
+  padding: 16px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #F0F2F5;
+}
+.livedebug-table {
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 0 3px rgba(20,20,20,0.2);
 }
 #editor {
-width: 100%
+  width: 100%;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+#editor > div {
+  outline: 0;
 }
 #livedebug pre {
   margin-top: 0px;
@@ -410,7 +468,7 @@ const editorWithTestCasesTool = ({ input, showTool = false }, config) => {
     document.head.appendChild(html`<style id="live_debugger">
                                   #live_debugger {
                                     width: 100%;
-                                    margin: 5px
+                                    max-width: calc(100vw - 556px);
                                   }
                                 </style>`)
   }

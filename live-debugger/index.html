@@ -2,46 +2,65 @@
 
 <head>
   <style>
+    *,
+    ::before,
+    ::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Helvetica", "Arial", sans-serif;
+    }
+
+    #container {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     #game-board {
       display: grid;
-      grid-template-columns: 100px 100px 100px 100px 100px;
-      grid-template-rows: 100px 100px 100px 100px 100px;
+      grid-template: repeat(5, 100px) / repeat(5, 100px);
       justify-content: center;
-      padding: 20px;
+      width: min-content;
+      border: 2px solid #cbd5e0;
     }
+
     #game-board div {
-      background: #d9d9d9;
-      border: 2px solid black;
+      background: #F0F2F5;
+      border: 2px solid #cbcdcf;
       width: 100px;
       height: 100px;
     }
+
     #game-board div.user-next {
-      background: blue;
+      background: #0084ff;
     }
-    #game-board div.correct-next {
-      background: green;
-    }
+
     #game-board img {
       height: 100px;
       width: 100px;
+      padding: 8px;
       cursor: grab;
-      position: absolute; /* layer images */
-      object-fit: scale-down; /* fit in cell */
-    }
-    textarea {
-      font-family: monospace !important;
+      position: absolute;
+      object-fit: scale-down;
     }
   </style>
-  
+
 </head>
 
 <body>
-  <div id="game-board">
+  <div id="container">
+    <div id="game-board">
+    </div>
   </div>
   <script type="module">
-      import { editorWithTestCasesTool } from './library.js'
+    import { editorWithTestCasesTool } from './library.js';
 
-    var size = 5
+    var size = 5;
 
 
     // *************************
@@ -58,13 +77,17 @@
       }
     }
 
+    function getCellDiv(x, y) {
+      return gameBoard.querySelector('div[data-x="' + x + '"][data-y="' + y + '"]');
+    }
+
     var hero = document.createElement('img');
     hero.src = "images/mario.png";
-    gameBoard.querySelector('div[data-x="3"][data-y="2"').appendChild(hero);
+    getCellDiv(3, 2).appendChild(hero);
 
     var enemy = document.createElement('img');
     enemy.src = "images/bowser.png";
-    gameBoard.querySelector('div[data-x="4"][data-y="4"').appendChild(enemy);
+    getCellDiv(4, 4).appendChild(enemy);
 
 
 
@@ -114,10 +137,10 @@
       }
 
       // Get player positions
-      var heroX = +hero.parentElement.dataset.x
-      var heroY = +hero.parentElement.dataset.y
-      var enemyX = +enemy.parentElement.dataset.x
-      var enemyY = +enemy.parentElement.dataset.y
+      var heroX = +hero.parentElement.dataset.x;
+      var heroY = +hero.parentElement.dataset.y;
+      var enemyX = +enemy.parentElement.dataset.x;
+      var enemyY = +enemy.parentElement.dataset.y;
 
       // Calculate enemy direction
 
@@ -146,11 +169,10 @@
       } else if (enemyDirection === 'down') {
         nextY++;
       }
-      gameBoard.querySelector('div[data-x="' + nextX + '"][data-y="' + nextY + '"]').classList.add("user-next");
+      getCellDiv(nextX, nextY).classList.add("user-next");
     }
 
     // And run it to start
     calculateEnemyMove();
-
   </script>
 </body>
