@@ -189,7 +189,7 @@ const debugger_interface = ({ set_state }) => {
     return out
   }
   return ({ current_input, callback, interactive = true, active = true, code, history = [], expected = [], keep=[] }) => {
-    
+
     //editor.setOption("readonly", !interactive)
     console.debug('building the editor')
     const editor = (() => {
@@ -224,10 +224,10 @@ const debugger_interface = ({ set_state }) => {
       const first = history.find(e => e.input == current_input) || { input: current_input }
       setTimeout(() => set_state({ history: [first, ...keepers] }))
       return undefined  // render nothing, will rerender momentarily
-    } 
+    }
     if (!interactive) {
       console.log("calling callback", current_input, editor.value)
-      
+
       //callback(compute_output(JSON.parse(current_input), editor.value))
     }
     console.debug('rendering component', editor)
@@ -252,7 +252,7 @@ const debugger_interface = ({ set_state }) => {
     console.log(history)
     // history = []  // of inputs?
     // expected = []  // of values? store as an object like {value} to avoid ambiguity about expected undefined
-    
+
     const expected_changed = html`<input>`
     const inputs_refs = {}
     const expected_input = i => {
@@ -295,7 +295,7 @@ const debugger_interface = ({ set_state }) => {
       }
       return el
     }
-    
+
     return html`
 <div id="livedebug">
 <div class="livedebug-top">
@@ -332,7 +332,7 @@ ${output(output_temp, q => q instanceof Error ? q : inspect(q))}
 </tr>
 </thead>
 <tbody>
-${history.map((item, i) => 
+${history.map((item, i) =>
   html.fragment`
   <tr>
     <td>${toggle_keep(i)}</td>
@@ -355,12 +355,12 @@ ${history.map((item, i) =>
   `
 )}
 </tbody>
-</table> 
+</table>
 </div>
 </div>
 
 </div>
-<link rel="stylesheet" href="./inspector.css">
+<link rel="stylesheet" href="./editorWithTestCasesTool.css">
 <style>
 #inputBox, #outputBox, #editor {
   margin-bottom: 16px;
@@ -463,7 +463,7 @@ const editorWithTestCasesTool = ({ input, showTool = false }, config) => {
 
   const update_local_copy = config =>
     console.debug('(This is where the local copy would be updated.') //fetch(`http://localhost:3000/set?id=${id}&config=${JSON.stringify(config)}`)
-  
+
   if (!document.querySelector('style#live_debugger')) {
     document.head.appendChild(html`<style id="live_debugger">
                                   #live_debugger {
@@ -472,10 +472,10 @@ const editorWithTestCasesTool = ({ input, showTool = false }, config) => {
                                   }
                                 </style>`)
   }
-  
+
   let debugger_div = document.querySelector('div#live_debugger')
   if (!debugger_div && showTool) {
-    document.head.appendChild(html`<link rel="stylesheet" href="./inspector.css"></link>`)
+    document.head.appendChild(html`<link rel="stylesheet" href="./editorWithTestCasesTool.css"></link>`)
     debugger_div = html`<div id="live_debugger"></div>`
     split_view({ parent: document.body, left: document.body.childNodes, right: debugger_div })
     //document.body.appendChild(debugger_div)
