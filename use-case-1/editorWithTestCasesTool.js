@@ -3,7 +3,9 @@ import inspector from 'https://cdn.skypack.dev/@observablehq/inspector@3.2.2/dis
 const Inspector = inspector.Inspector
 
 import { EditorState, EditorView, basicSetup } from 'https://cdn.skypack.dev/@codemirror/next/basic-setup'
+import { keymap } from 'https://cdn.skypack.dev/@codemirror/next/view'
 import { javascript } from 'https://cdn.skypack.dev/@codemirror/next/lang-javascript'
+import { defaultKeymap, indentMore, indentLess } from "https://cdn.skypack.dev/@codemirror/next/commands";
 
 let retval;
 
@@ -205,10 +207,24 @@ const debugger_interface = ({ set_state }) => {
         dom.dispatchEvent(new CustomEvent('input'))
       })
 
+      const indentWithTab = keymap.of([
+        ...defaultKeymap,
+        {
+          key: "Tab",
+          preventDefault: true,
+          run: indentMore,
+        },
+        {
+          key: "Shift-Tab",
+          preventDefault: true,
+          run: indentLess,
+        },
+      ]);
+
       const view = new EditorView({
         state: EditorState.create({
           doc: code,
-          extensions: [basicSetup, javascript(), updateViewOf] // actually enable, ...(interactive && active ? [] : [EditorView.editable.of(false)])]  // disable editing if not interactive
+          extensions: [basicSetup, javascript(), updateViewOf, EditorState.tabSize.of(2), indentWithTab] // actually enable, ...(interactive && active ? [] : [EditorView.editable.of(false)])]  // disable editing if not interactive
         })
       })
       view.dom.value = code  // HACK because the value isn't inited
