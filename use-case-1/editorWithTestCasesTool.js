@@ -370,6 +370,13 @@ ${history.map((item, i) =>
   box-shadow: 0 1px 4px rgba(20,20,20,0.2);
 }
 
+#editor {
+  min-height: 100px;
+  max-height: 50vh;
+  resize: vertical;
+  overflow-y: auto;
+}
+
 #testTable table {
   width: 100%;
   border-collapse: collapse;
