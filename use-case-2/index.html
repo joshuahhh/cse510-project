@@ -78,7 +78,10 @@
 
             // Connect to webcam
             if (navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
+                var videoConstraints = {
+                    width: { min: 320, ideal: 640, max: 1280 },
+                }
+                navigator.mediaDevices.getUserMedia({ video: videoConstraints })
                     .then(function (stream) {
                         video.srcObject = stream;
                     })
