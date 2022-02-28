@@ -1,0 +1,142 @@
+
+  // traverse(parsed as ESNode, {
+  //   enter(node, parent) {
+  //     if (node.type === 'IfStatement') {
+  //       substitutions.push({
+  //         range: {start: (node as AcornNode).start, end: node.end},
+  //         subranges: [
+  //           {start: node.left.start, end: node.left.end},
+  //           {start: node.right.start, end: node.right.end},
+  //         ],
+  //         replacement: `(${operatorSub}($0, $1))`
+  //       });
+
+  //       const newTest: ESNode = {
+  //         type: "CallExpression",
+  //         callee: {
+  //           type: "Identifier",
+  //           name: "__logTest"
+  //         },
+  //         arguments: [
+  //           node.test
+  //         ],
+  //         optional: false
+  //       }
+  //       return {...node, test: newTest};
+  //     }
+  //   }
+  // });
+
+
+
+
+
+
+  // specificGuttersRight(gutters)
+
+  // const parsed = useMemo(() => {
+  //   try {
+  //     return parseExpressionAt(code, 0, { ecmaVersion: 11});
+  //   } catch (e) {
+  //     return `error: ${(e as any).message}`;
+  //   }
+  // }, [code])
+
+  // const replaced = useMemo(() => {
+  //   if (typeof parsed === 'string') {
+  //     return parsed;
+  //   }
+  //   return replace(parsed as ESNode, {
+  //     enter(node, parent) {
+  //       if (node.type === 'IfStatement') {
+  //         const newTest: ESNode = {
+  //           type: "CallExpression",
+  //           callee: {
+  //             type: "Identifier",
+  //             name: "__logTest"
+  //           },
+  //           arguments: [
+  //             node.test
+  //           ],
+  //           optional: false
+  //         }
+  //         return {...node, test: newTest};
+  //       }
+  //     }
+  //   });
+  // }, [parsed])
+
+
+
+
+// const substitutions: Substitution[] = [];
+// acornWalk.simple(ast, {
+//   UnaryExpression(node) {
+//     const operatorSub = unaryOperatorSubs[node.operator];
+//     if (!operatorSub) return;
+
+//     substitutions.push({
+//       range: {start: node.start, end: node.end},
+//       subranges: [
+//         {start: node.argument.start, end: node.argument.end},
+//       ],
+//       replacement: `(${operatorSub}($0))`
+//     });
+//   },
+
+//   BinaryExpression(node) {
+//     const operatorSub = binaryOperatorSubs[node.operator];
+//     if (!operatorSub) return;
+
+//     substitutions.push({
+//       range: {start: node.start, end: node.end},
+//       subranges: [
+//         {start: node.left.start, end: node.left.end},
+//         {start: node.right.start, end: node.right.end},
+//       ],
+//       replacement: `(${operatorSub}($0, $1))`
+//     });
+//   },
+
+//   AssignmentExpression(node) {
+//     const operatorSub = assignmentOperatorSubs[node.operator];
+//     if (!operatorSub) return;
+
+//     substitutions.push({
+//       range: {start: node.start, end: node.end},
+//       subranges: [
+//         {start: node.left.start, end: node.left.end},
+//         {start: node.right.start, end: node.right.end},
+//       ],
+//       replacement: `($0 = ${operatorSub}($0, $1))`
+//     });
+//   },
+// });
+
+
+
+
+
+
+
+
+class NodeMarker extends GutterMarker {
+  constructor(readonly node: Node) { super(); }
+
+  toDOM() {
+    console.log("toDOM", this.node);
+    console.log(Object.getPrototypeOf(this.node))
+    return this.node
+  }
+}
+
+
+// function specificGuttersRight(nodes: (Node | null)[]) {
+//   return gutterRight({
+//     lineMarker(view, line) {
+//       const lineNum = view.state.doc.lineAt(line.from).number;
+//       const maybeNode = nodes[lineNum];
+//       return maybeNode === null || maybeNode === undefined ? null : new NodeMarker(maybeNode);
+//     }
+//   })
+// }
