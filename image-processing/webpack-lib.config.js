@@ -7,7 +7,7 @@ module.exports = {
     mode: 'development',
     entry: [ './src/lib.tsx' ],
     output: {
-        path: resolve(__dirname, '../theremin/'),
+        path: resolve(__dirname, '../use-case-2/'),
         filename: 'imageProcessingTool.js',
         library: {
             name: 'imageProcessingTool',

@@ -7,10 +7,10 @@ module.exports = {
     mode: 'development',
     entry: [ './src/lib.tsx' ],
     output: {
-        path: resolve(__dirname, '../theremin/'),
-        filename: 'imageProcessingTool.js',
+        path: resolve(__dirname, '../use-case-1/'),
+        filename: 'liveEditorTool.js',
         library: {
-            name: 'imageProcessingTool',
+            name: 'liveEditorTool',
             type: 'var',
             export: 'default',
         },

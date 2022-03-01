@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 
 <head>
+  <script src="liveEditorTool.js"></script>
+
   <style>
     *,
     ::before,
@@ -11,14 +13,8 @@
     }
 
     body {
+      padding: 30px;
       font-family: "Helvetica", "Arial", sans-serif;
-    }
-
-    #container {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     #game-board {
@@ -53,13 +49,10 @@
 </head>
 
 <body>
-  <div id="container">
-    <div id="game-board">
-    </div>
+  <div id="game-board">
   </div>
-  <script type="module">
-    import { editorWithTestCasesTool } from './editorWithTestCasesTool.js';
 
+  <script>
     var size = 5;
 
 
@@ -148,7 +141,7 @@
       var enemyDirection = 'left';
 
       // Option 2: Using live tool
-      var enemyDirection = editorWithTestCasesTool({
+      var enemyDirection = liveEditorTool({
         input: {
           heroX: heroX,
           heroY: heroY,
