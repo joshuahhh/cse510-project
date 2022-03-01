@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom';
 import { compileExpression } from './util';
 import ChalkEditor from './ChalkEditor';
+import LiveEditorToolEmbed from './LiveEditorToolEmbed';
 
 interface GlobalState {
   code: string;
@@ -61,7 +62,7 @@ function update() {
   const globalState = getGlobalState();
 
   if (globalState.showTool) {
-    ReactDOM.render(<ChalkEditor
+    ReactDOM.render(<LiveEditorToolEmbed
       code={globalState.code}
       setCode={(newCode) => {
         globalState.code = newCode;
