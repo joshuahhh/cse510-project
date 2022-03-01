@@ -127,7 +127,6 @@ const enhanceWithLineNumbers = (body: est.Node[]) => {
   for (const childNode of body) {
     if (childNode) {
       if (childNode.loc) {
-        console.log('childNode', childNode);
         // Using end line, b/c we want console and errors to show after the
         // source code location
         enhancedBody.push(makeLineNumExpressionStatement(childNode.loc.end.line));

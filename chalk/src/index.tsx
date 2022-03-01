@@ -1,11 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
+import TestChalkEditor from './TestChalkEditor';
+import TestLiveEditorTool from './TestLiveEditorTool';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    {/* <TestChalkEditor /> */}
+    <TestLiveEditorTool />
   </React.StrictMode>,
   document.getElementById('root')
 );

@@ -1,4 +1,4 @@
-import './App.css';
+import './TestChalkEditor.css';
 
 import { useCallback, useState } from 'react';
 
@@ -22,7 +22,7 @@ const input = {
   "enemyY": 4
 };
 
-function App() {
+function TestChalkEditor() {
   const [code, setCode] = useState(jsonFromLocalStorage || initialCode);
   const [result, setResult] = useState<ChalkResult>();
   const [showValues, setShowValues] = useState(false);
@@ -33,7 +33,7 @@ function App() {
   }, [])
 
   return (
-    <div className="App">
+    <div className="TestChalkEditor">
       <pre>input = {JSON.stringify(input, null, 2)}</pre>
       <ChalkEditor
         code={code} setCode={saveCode}
@@ -55,5 +55,5 @@ function App() {
   );
 }
 
-export default App;
+export default TestChalkEditor;
 

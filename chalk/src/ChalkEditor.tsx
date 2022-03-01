@@ -1,5 +1,3 @@
-import './App.css';
-
 import CodeMirror from './CodeMirror';
 
 import {keymap, highlightSpecialChars, drawSelection, dropCursor, WidgetType, EditorView, Decoration } from "@codemirror/view"
@@ -185,7 +183,7 @@ export interface ChalkEditorProps {
   code: string;
   input: any;
   setCode: Dispatch<string>;
-  reportResult: (result: ChalkResult) => void;
+  reportResult?: (result: ChalkResult) => void;
   showValues: boolean;
 }
 
@@ -258,7 +256,7 @@ function ChalkEditor({code, input, setCode, reportResult, showValues}: ChalkEdit
   useEffect(() => {
     function done(result: ChalkResult) {
       // console.log("done", logsRef.current, result);
-      reportResult(result);
+      reportResult && reportResult(result);
       setLogs(logsRef.current);
     }
 
