@@ -1,87 +1,148 @@
-import { parseExpressionAt, Node as AcornNode, getLineInfo } from 'acorn';
-import { performSubstitutions, Substitution } from './util';
+// note from josh: some of the following is adapted from a friend's code – please chat before reusing it
 
-import * as acornWalk from 'acorn-walk';
+import { parseExpressionAt, Node as AcornNode } from 'acorn';
+import { generate } from 'astring'
 
-export interface ValueRange {
-  line: number,
+import * as est from 'estree';
+
+function isIfStatement(node: any): node is est.IfStatement & AcornNode {
+  return node.type === 'IfStatement';
+}
+function isCallExpression(node: any): node is est.CallExpression & AcornNode {
+  return node.type === 'CallExpression';
+}
+function isVariableDeclarator(node: any): node is est.VariableDeclarator & AcornNode {
+  return node.type === 'VariableDeclarator';
+}
+function isAssignmentExpression(node: any): node is est.AssignmentExpression & AcornNode {
+  return node.type === 'AssignmentExpression';
+}
+function isReturnStatement(node: any): node is est.ReturnStatement & AcornNode {
+  return node.type === 'ReturnStatement';
+}
+
+function start(node: est.Node): number;
+function start(node?: est.Node): number | undefined;
+function start(node?: est.Node): number | undefined {
+  return node === undefined ? undefined : (node as AcornNode).start;
+}
+
+function end(node: est.Node): number;
+function end(node?: est.Node): number | undefined;
+function end(node?: est.Node): number | undefined {
+  return node === undefined ? undefined : (node as AcornNode).end;
+}
+
+export interface Range {
   start: number,
   end: number,
-  value: any,
 }
 
 export interface Callbacks {
-  __log_IfStatement_test(valueRange: ValueRange & {consequentStart: number, consequentEnd: number, alternateStart?: number, alternateEnd?: number}): any
-  __log_VariableDeclarator_init(valueRange: ValueRange): any
-  __log_AssignmentExpression_right(valueRange: ValueRange): any
-  __log_ReturnStatement_argument(valueRange: ValueRange): any
+  __inst_IfStatement_test(range: Range & {consequentStart: number, consequentEnd: number, alternateStart?: number, alternateEnd?: number}, value: any): any
+  __inst_VariableDeclarator_init(range: Range, value: any): any
+  __inst_AssignmentExpression_right(range: Range, value: any): any
+  __inst_ReturnStatement_argument(range: Range, value: any): any
+  __inst_lineNum(num: number): void
 }
 
 
 export function instrumentCode(code: string): string {
-  const parsed = parseExpressionAt(code, 0, { ecmaVersion: 11 });
-
-  const substitutions: Substitution[] = [];
-
-  acornWalk.simple(parsed, {
-    IfStatement(node) {
-      const test: AcornNode = (node as any).test;
-      const consequent: AcornNode = (node as any).consequent;
-      const alternate: AcornNode | null = (node as any).alternate;
-      const line = getLineInfo(code, test.start).line;
-      substitutions.push({
-        range: {start: test.start, end: test.end},
-        subranges: [
-          {start: test.start, end: test.end},
-        ],
-        replacement:
-          `__log_IfStatement_test({line: ${line}, start: ${test.start}, end: ${test.end}, ` +
-          `consequentStart: ${consequent.start}, consequentEnd: ${consequent.end}, ` +
-          `alternateStart: ${alternate ? alternate.start : undefined}, alternateEnd: ${alternate ? alternate.end : undefined}, ` +
-          `value: $0})`
-      });
-    },
-    VariableDeclarator(node) {
-      const init: AcornNode | null = (node as any).init;
-      if (!init) {
-        return;
-      }
-      const line = getLineInfo(code, init.start).line;
-      substitutions.push({
-        range: {start: init.start, end: init.end},
-        subranges: [
-          {start: init.start, end: init.end},
-        ],
-        replacement: `__log_VariableDeclarator_init({line: ${line}, start: ${init.start}, end: ${init.end}, value: $0})`
-      });
-    },
-    AssignmentExpression(node) {
-      const right: AcornNode = (node as any).right;
-      const line = getLineInfo(code, right.start).line;
-      substitutions.push({
-        range: {start: right.start, end: right.end},
-        subranges: [
-          {start: right.start, end: right.end},
-        ],
-        replacement: `__log_AssignmentExpression_right({line: ${line}, start: ${right.start}, end: ${right.end}, value: $0})`
-      });
-    },
-    ReturnStatement(node) {
-      const argument: AcornNode | null = (node as any).argument;
-      if (!argument) {
-        return;
-      }
-      const line = getLineInfo(code, argument.start).line;
-      substitutions.push({
-        range: {start: argument.start, end: argument.end},
-        subranges: [
-          {start: argument.start, end: argument.end},
-        ],
-        replacement: `__log_ReturnStatement_argument({line: ${line}, start: ${argument.start}, end: ${argument.end}, value: $0})`
-      });
-    }
-  });
-
-  return performSubstitutions(code, substitutions);
+  const parsed = parseExpression(code);
+  const transformed = walk(parsed) as est.Node;
+  return generate(transformed);
 }
 
+export function parseExpression(expr: string): est.Expression & AcornNode {
+  return parseExpressionAt(expr, 0, { ecmaVersion: 11, locations: true }) as est.Expression & AcornNode;
+}
+
+export function parseCallExpression(expr: string, ...moreArgs: est.Expression[]): est.CallExpression & AcornNode {
+  const parsed = parseExpression(expr);
+  if (!isCallExpression(parsed)) { throw new Error("internal error!"); }
+  return {...parsed, arguments: [...parsed.arguments, ...moreArgs]};
+}
+
+function nodeInfo(node: est.Node) {
+  return {start: start(node), end: end(node)};
+}
+
+export const walk = (node: any): unknown => {
+  if (!node) return node;
+
+  if (isIfStatement(node)) {
+    const test = node.test;
+    const consequent = node.consequent;
+    const alternate = node.alternate || undefined;
+    const info = JSON.stringify({
+      ...nodeInfo(test),
+      consequentStart: start(consequent), consequentEnd: end(consequent),
+      alternateStart: start(alternate), alternateEnd: end(alternate),
+    });
+    const newNode: est.IfStatement = {...node, test: parseCallExpression(`__inst_IfStatement_test(${info})`, test)};
+    node = newNode
+  } else if (isVariableDeclarator(node)) {
+    const init = node.init;
+    if (init) {
+      const info = JSON.stringify(nodeInfo(init))
+      const newNode: est.VariableDeclarator = {...node, init: parseCallExpression(`__inst_VariableDeclarator_init(${info})`, init)};
+      node = newNode;
+    }
+  } else if (isAssignmentExpression(node)) {
+    const right = node.right;
+    const info = JSON.stringify(nodeInfo(right))
+    const newNode: est.AssignmentExpression = {...node, right: parseCallExpression(`__inst_AssignmentExpression_right(${info})`, right)};
+    node = newNode;
+  } else if (isReturnStatement(node)) {
+    const argument = node.argument;
+    if (argument) {
+      const info = JSON.stringify(nodeInfo(argument))
+      const newNode: est.ReturnStatement = {...node, argument: parseCallExpression(`__inst_ReturnStatement_argument(${info})`, argument)};
+      node = newNode;
+    }
+  }
+
+  // Interspersing _ENV.lineNum() calls
+  if (node.body && Array.isArray(node.body) && node.type !== "ClassBody") {
+    node = { ...node, body: enhanceWithLineNumbers(node.body) };
+  } else if (node.consequent && Array.isArray(node.consequent)) {
+    node = { ...node, consequent: enhanceWithLineNumbers(node.consequent) };
+  }
+
+  // Properties of nodes
+  if (Array.isArray(node)) {
+    return node.map((child) => walk(child));
+  } else if (typeof node === "object") {
+    return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, walk(v)]))
+  } else {
+    return node;
+  }
+};
+
+
+const enhanceWithLineNumbers = (body: est.Node[]) => {
+  // TODO: node.body of `while(true);` is type EmptyStatement... look into
+  // converting to BlockStatement and preventing runaway loops
+  const enhancedBody: est.Node[] = [];
+  for (const childNode of body) {
+    if (childNode) {
+      if (childNode.loc) {
+        console.log('childNode', childNode);
+        // Using end line, b/c we want console and errors to show after the
+        // source code location
+        enhancedBody.push(makeLineNumExpressionStatement(childNode.loc.end.line));
+      }
+      enhancedBody.push(childNode);
+    }
+  }
+  return enhancedBody;
+};
+
+const makeLineNumExpressionStatement: (num: number) => est.ExpressionStatement = (num) => {
+  const jsCode = `__inst_lineNum(${num});`;
+  const expression = parseExpression(jsCode);
+  return {
+    type: 'ExpressionStatement',
+    expression
+  };
+};

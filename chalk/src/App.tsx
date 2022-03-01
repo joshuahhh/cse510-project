@@ -1,176 +1,8 @@
 import './App.css';
 
-import CodeMirror from './CodeMirror';
+import { useCallback, useState } from 'react';
 
-import {keymap, highlightSpecialChars, drawSelection, dropCursor, WidgetType, EditorView, Decoration } from "@codemirror/view"
-import {EditorState} from "@codemirror/state"
-import {history, historyKeymap} from "@codemirror/history"
-import {foldKeymap} from "@codemirror/fold"
-import {indentOnInput} from "@codemirror/language"
-import {defaultKeymap, indentWithTab} from "@codemirror/commands"
-import {bracketMatching} from "@codemirror/matchbrackets"
-import {closeBrackets, closeBracketsKeymap} from "@codemirror/closebrackets"
-import {searchKeymap, highlightSelectionMatches} from "@codemirror/search"
-import {autocompletion, completionKeymap} from "@codemirror/autocomplete"
-import {commentKeymap} from "@codemirror/comment"
-import {rectangularSelection} from "@codemirror/rectangular-selection"
-import {defaultHighlightStyle} from "@codemirror/highlight"
-import {lintKeymap} from "@codemirror/lint"
-import {lineNumbers, highlightActiveLineGutter} from "@codemirror/gutter"
-import {javascript} from "@codemirror/lang-javascript"
-import { gutterRight, lineNumbersRight, GutterMarker } from './gutterRight';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Callbacks, instrumentCode } from './instrumentation';
-import { compileExpression } from './util';
-
-import { Range, RangeSet } from "@codemirror/rangeset";
-
-import { parseExpressionAt } from 'acorn';
-
-
-
-
-class HTMLWidget extends WidgetType {
-  constructor(readonly html: string) { super() }
-
-  eq(other: HTMLWidget) { return other.html === this.html }
-
-  toDOM() {
-    var tempDiv = document.createElement('div');
-    tempDiv.innerHTML = this.html.trim();
-
-    return tempDiv.firstElementChild as HTMLElement;
-  }
-}
-
-function valueWidget(text: string, offset: number) {
-  return  Decoration.widget({
-    widget: new HTMLWidget(`<span class="chalk-value">${text}</span>`),
-    side: 1
-  }).range(offset)
-}
-
-function logDecoration(text: string, offset: number) {
-  return Decoration.widget({
-    widget: new HTMLWidget(`<span class="chalk-log">${text}</span>`),
-    side: 1,
-  }).range(offset);
-}
-
-function errorDecoration(text: string, offset: number) {
-  return Decoration.widget({
-    widget: new HTMLWidget(`<span class="chalk-error">${text}</span>`),
-    side: 1,
-  }).range(offset);
-}
-
-function underlineDecoration(start: number, end: number) {
-  return Decoration.mark({
-    class: "chalk-underline"
-  }).range(start, end)
-}
-
-function fadeDecoration(start: number, end: number) {
-  return Decoration.mark({
-    class: "chalk-fade"
-  }).range(start, end)
-}
-
-const allTheme = EditorView.baseTheme({
-  ".chalk-error": {
-    backgroundColor: 'rgba(255,0,0,0.3)',
-    color: 'rgba(0,0,0,0.8)',
-    fontFamily: 'sans-serif',
-    fontSize: '80%',
-    borderRadius: '5px',
-    marginLeft: '15px',
-    paddingLeft: '5px',
-    paddingRight: '5px',
-    border: '1px solid rgba(255,0,0,1)',
-  },
-  ".chalk-log": {
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    color: 'rgba(0,0,0,0.8)',
-    fontFamily: 'sans-serif',
-    fontSize: '80%',
-    borderRadius: '5px',
-    marginLeft: '15px',
-    paddingLeft: '5px',
-    paddingRight: '5px',
-  },
-  ".chalk-value": {
-    background:  'rgba(128, 0, 128, 0.7)',
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontFamily: 'sans-serif',
-    fontSize: '80%',
-    borderRadius: '5px',
-    marginLeft: '15px',
-    paddingLeft: '5px',
-    paddingRight: '5px',
-  },
-  ".chalk-value + .chalk-value": {
-    marginLeft: '5px',
-  },
-  ".chalk-fade": {
-    opacity: 0.35,
-  },
-  ".chalk-underline": {
-    borderBottom: '1.5px solid rgba(128, 0, 128, 0.7)',
-  },
-});
-
-
-// eslint-disable-next-line new-parens
-class TextMarker extends GutterMarker {
-  constructor(readonly text: string) { super(); }
-
-  toDOM() { return document.createTextNode(this.text) }
-}
-
-function specificGutterTextsRight(texts: {line: number, text: string}[]) {
-  return gutterRight({
-    lineMarker(view, line) {
-      const lineNum = view.state.doc.lineAt(line.from).number;
-      const textsForLine = texts.filter(({line}) => line === lineNum).map(({text}) => text);
-      return textsForLine.length === 0 ? null : new TextMarker(textsForLine.join(", "));
-    }
-  })
-}
-
-export const extensions = [
-  lineNumbers(),
-  // lineNumbersRight({formatNumber: (lineNo) => lineNo.toString().repeat(lineNo)}),
-  highlightActiveLineGutter(),
-  highlightSpecialChars(),
-  history(),
-  // foldGutter(),
-  drawSelection(),
-  dropCursor(),
-  EditorState.allowMultipleSelections.of(true),
-  indentOnInput(),
-  defaultHighlightStyle.fallback,
-  bracketMatching(),
-  closeBrackets(),
-  autocompletion(),
-  rectangularSelection(),
-  // highlightActiveLine(),
-  highlightSelectionMatches(),
-
-  keymap.of([
-    ...closeBracketsKeymap,
-    ...defaultKeymap,
-    ...searchKeymap,
-    ...historyKeymap,
-    ...foldKeymap,
-    ...commentKeymap,
-    ...completionKeymap,
-    ...lintKeymap,
-    indentWithTab,
-  ]),
-
-  javascript(),
-
-]
+import ChalkEditor, { ChalkResult } from './ChalkEditor';
 
 const initialCode = `function (x) {
   if (x < 0) {
@@ -181,28 +13,7 @@ const initialCode = `function (x) {
 }`
 
 
-
-/*
-ok what instrumentation do I actually wanna do for this?
-* parse errors (doesn't need instrumentation)
-* runtime errors (doesn't need instrumentation)
-* console.log (doesn't need instrumentation)
-*/
-
-interface Logs {
-  margins: {line: number, text: string}[],
-  decorations: Range<Decoration>[],
-}
-
-function newLogs(): Logs {
-  return {
-    margins: [], decorations: []
-  };
-}
-
 const jsonFromLocalStorage = localStorage.getItem("editor-code");
-
-type ChalkResult = {value: any} | {error: any};
 
 const input = {
   "heroX": 3,
@@ -211,172 +22,28 @@ const input = {
   "enemyY": 4
 };
 
-function getErrorObject(): Error {
-  try { throw Error('') } catch(err) { return err as Error; }
-}
-
-function lineNumberFromError(e: Error): number | null {
-  const matchChrome: [string, string, string] | null = (e as any).stack.match(/<anonymous>:(\d*):(\d*)/m);
-  if (matchChrome) {
-    return +matchChrome[1] - 2;  // TODO: idk what the 2 is for lol
-  }
-  const matchFirefox: [string, string, string] | null = (e as any).stack.match(/^anonymous\/.* Function:(\d*):(\d*)/m);
-  console.log("saf", matchFirefox);
-  if (matchFirefox) {
-    return +matchFirefox[1] - 2;  // TODO: idk what the 2 is for lol
-  }
-  return null;
-}
-
 function App() {
   const [code, setCode] = useState(jsonFromLocalStorage || initialCode);
+  const [result, setResult] = useState<ChalkResult>();
+  const [showValues, setShowValues] = useState(false);
 
   const saveCode = useCallback((code: string) => {
     localStorage.setItem("editor-code", code);
     setCode(code);
   }, [])
 
-  const cmText = useMemo(() => {
-    return EditorState.create({doc: code}).doc;
-  }, [code])
-
-  const logsRef = useRef<Logs>(newLogs());
-  const [logs, setLogs] = useState<Logs>(newLogs());
-  const [result, setResult] = useState<ChalkResult>();
-
-  const [showInline, setShowInline] = useState(true);
-  const [showMargins, setShowMargins] = useState(true);
-
-  const env: Callbacks = useMemo(() => {
-    return {
-      __log_IfStatement_test: ({line, start, end, value, consequentStart, consequentEnd, alternateStart, alternateEnd}) => {
-        logsRef.current.margins.push({line, text: `condition is ${JSON.stringify(value)}`});
-        if (showInline) {
-          logsRef.current.decorations.push(underlineDecoration(start, end));
-          logsRef.current.decorations.push(valueWidget(`${value}`, cmText.line(line).to));
-        }
-        if (!value) {
-          logsRef.current.decorations.push(fadeDecoration(consequentStart, consequentEnd));
-        } else {
-          if (alternateStart && alternateEnd) {
-            logsRef.current.decorations.push(fadeDecoration(alternateStart, alternateEnd));
-          }
-        }
-        return value;
-      },
-      __log_VariableDeclarator_init: ({line, start, end, value}) => {
-        logsRef.current.margins.push({line, text: `= ${JSON.stringify(value)}`});
-        if (showInline) {
-          logsRef.current.decorations.push(underlineDecoration(start, end));
-          logsRef.current.decorations.push(valueWidget(`${value}`, cmText.line(line).to));
-        }
-        return value;
-      },
-      __log_AssignmentExpression_right: ({line, start, end, value}) => {
-        logsRef.current.margins.push({line, text: `= ${JSON.stringify(value)}`});
-        if (showInline) {
-          logsRef.current.decorations.push(underlineDecoration(start, end));
-          logsRef.current.decorations.push(valueWidget(`${value}`, cmText.line(line).to));
-        }
-        return value;
-      },
-      __log_ReturnStatement_argument: ({line, start, end, value}) => {
-        logsRef.current.margins.push({line, text: `= ${JSON.stringify(value)}`});
-        if (showInline) {
-          logsRef.current.decorations.push(underlineDecoration(start, end));
-          logsRef.current.decorations.push(valueWidget(`${value}`, cmText.line(line).to));
-        }
-        return value;
-      },
-      console: {
-        log: (...vals: any[]) => {
-          const text = vals.map((v) => JSON.stringify(v)).join(", ");
-          const lineNum = lineNumberFromError(getErrorObject());
-          logsRef.current.decorations.push(logDecoration(text, cmText.line(lineNum!).to));
-          console.log(...vals);
-        }
-      }
-      // TODO: ternary operators
-      // TODO: debouncing (hide & show annotations)
-      // TODO: errors on side
-    }
-  }, [cmText, showInline]);
-
-  useEffect(() => {
-    function done(result: ChalkResult) {
-      console.log("done", logsRef.current, result);
-      setResult(result);
-      setLogs(logsRef.current);
-    }
-
-    logsRef.current = newLogs();
-
-    let generated: string;
-    try {
-      generated = instrumentCode(code)
-    } catch (e) {
-      logsRef.current.decorations.push(errorDecoration((e as any).message, cmText.lineAt((e as any).raisedAt).to));
-      return done({error: e});
-    }
-
-    console.log(generated);
-
-    let compiled;
-    try {
-      compiled = compileExpression(generated);
-    } catch (e) {
-      // throw e;
-      return done({error: e})
-    }
-
-    console.log("compiled!");
-
-    let f = compiled(env);
-
-    try {
-      const value = (f as any)(input);
-      return done({value})
-    } catch (e) {
-      // runtime error
-      (window as any).e = e;
-
-      if (!(e instanceof Error)) {
-        return done({error: e})
-      }
-
-      const lineNum = lineNumberFromError(e);
-      if (lineNum === null) {
-        return done({error: e})
-      }
-
-      logsRef.current.decorations.push(errorDecoration(e.message, cmText.line(lineNum).to));
-      setLogs(logsRef.current);
-
-      return done({error: e})
-    }
-  }, [cmText, code, env])
-
-  console.log(logs.decorations);
-
   return (
     <div className="App">
       <pre>input = {JSON.stringify(input, null, 2)}</pre>
-      <CodeMirror
-        text={code} onChange={saveCode}
-        extensions={[
-          extensions,
-          allTheme,
-          showMargins ? specificGutterTextsRight(logs.margins) : [],
-          EditorView.decorations.of(RangeSet.of(logs.decorations, true)),
-        ]}
+      <ChalkEditor
+        code={code} setCode={saveCode}
+        input={input}
+        reportResult={setResult}
+        showValues={showValues}
       />
       <div>
-        <input name="inline" type="checkbox" checked={showInline} onChange={(ev) => setShowInline(ev.target.checked)}/>
-        <label htmlFor="inline">Show values inline</label>
-      </div>
-      <div>
-        <input name="margins" type="checkbox" checked={showMargins} onChange={(ev) => setShowMargins(ev.target.checked)}/>
-        <label htmlFor="margins">Show values in margins</label>
+        <input name="inline" type="checkbox" checked={showValues} onChange={(ev) => setShowValues(ev.target.checked)}/>
+        <label htmlFor="inline">Show values</label>
       </div>
       <div>
         {result && ('error' in result ?
