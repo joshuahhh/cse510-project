@@ -66,6 +66,12 @@ function errorDecoration(text: string, offset: number) {
   }).range(offset);
 }
 
+function underlineDecoration(start: number, end: number) {
+  return Decoration.mark({
+    class: "chalk-underline"
+  }).range(start, end)
+}
+
 function fadeDecoration(start: number, end: number) {
   return Decoration.mark({
     class: "chalk-fade"
@@ -86,18 +92,23 @@ const allTheme = EditorView.baseTheme({
     fontSize: '80%',
   },
   ".chalk-value": {
-    opacity: 0.7,
-    background: 'gray',
-    color: 'white',
+    background:  'rgba(128, 0, 128, 0.7)',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontFamily: 'sans-serif',
     fontSize: '80%',
     borderRadius: '5px',
-    marginLeft: '5px',
+    marginLeft: '15px',
     paddingLeft: '5px',
     paddingRight: '5px',
   },
+  ".chalk-value + .chalk-value": {
+    marginLeft: '5px',
+  },
   ".chalk-fade": {
-    opacity: 0.35
+    opacity: 0.35,
+  },
+  ".chalk-underline": {
+    borderBottom: '1.5px solid rgba(128, 0, 128, 0.7)',
   },
 });
 
@@ -223,10 +234,11 @@ function App() {
 
   const env: Callbacks = useMemo(() => {
     return {
-      __log_IfStatement_test: ({line, end, value, consequentStart, consequentEnd, alternateStart, alternateEnd}) => {
+      __log_IfStatement_test: ({line, start, end, value, consequentStart, consequentEnd, alternateStart, alternateEnd}) => {
         logsRef.current.margins.push({line, text: `condition is ${JSON.stringify(value)}`});
         if (showInline) {
-          logsRef.current.decorations.push(valueWidget(`${value}`, end));
+          logsRef.current.decorations.push(underlineDecoration(start, end));
+          logsRef.current.decorations.push(valueWidget(`${value}`, cmText.line(line).to));
         }
         if (!value) {
           logsRef.current.decorations.push(fadeDecoration(consequentStart, consequentEnd));
@@ -237,24 +249,27 @@ function App() {
         }
         return value;
       },
-      __log_VariableDeclarator_init: ({line, end, value}) => {
+      __log_VariableDeclarator_init: ({line, start, end, value}) => {
         logsRef.current.margins.push({line, text: `= ${JSON.stringify(value)}`});
         if (showInline) {
-          logsRef.current.decorations.push(valueWidget(`${value}`, end));
+          logsRef.current.decorations.push(underlineDecoration(start, end));
+          logsRef.current.decorations.push(valueWidget(`${value}`, cmText.line(line).to));
         }
         return value;
       },
-      __log_AssignmentExpression_right: ({line, end, value}) => {
+      __log_AssignmentExpression_right: ({line, start, end, value}) => {
         logsRef.current.margins.push({line, text: `= ${JSON.stringify(value)}`});
         if (showInline) {
-          logsRef.current.decorations.push(valueWidget(`${value}`, end));
+          logsRef.current.decorations.push(underlineDecoration(start, end));
+          logsRef.current.decorations.push(valueWidget(`${value}`, cmText.line(line).to));
         }
         return value;
       },
-      __log_ReturnStatement_argument: ({line, end, value}) => {
+      __log_ReturnStatement_argument: ({line, start, end, value}) => {
         logsRef.current.margins.push({line, text: `= ${JSON.stringify(value)}`});
         if (showInline) {
-          logsRef.current.decorations.push(valueWidget(`${value}`, end));
+          logsRef.current.decorations.push(underlineDecoration(start, end));
+          logsRef.current.decorations.push(valueWidget(`${value}`, cmText.line(line).to));
         }
         return value;
       },
@@ -266,11 +281,15 @@ function App() {
           console.log("log", vals, getErrorObject().stack);
         }
       }
+      // TODO: ternary operators
+      // TODO: debouncing (hide & show annotations)
+      // TODO: errors on side
     }
   }, [cmText, showInline]);
 
   useEffect(() => {
     function done(result: ChalkResult) {
+      console.log("done", logsRef.current, result);
       setResult(result);
       setLogs(logsRef.current);
     }
@@ -285,12 +304,17 @@ function App() {
       return done({error: e});
     }
 
+    console.log(generated);
+
     let compiled;
     try {
       compiled = compileExpression(generated);
     } catch (e) {
+      // throw e;
       return done({error: e})
     }
+
+    console.log("compiled!");
 
     let f = compiled(env);
 
@@ -313,6 +337,8 @@ function App() {
       return done({error: e})
     }
   }, [cmText, code, env])
+
+  console.log(logs.decorations);
 
   return (
     <div className="App">

@@ -5,6 +5,7 @@ import * as acornWalk from 'acorn-walk';
 
 export interface ValueRange {
   line: number,
+  start: number,
   end: number,
   value: any,
 }
@@ -34,7 +35,7 @@ export function instrumentCode(code: string): string {
           {start: test.start, end: test.end},
         ],
         replacement:
-          `__log_IfStatement_test({line: ${line}, end: ${test.end}, ` +
+          `__log_IfStatement_test({line: ${line}, start: ${test.start}, end: ${test.end}, ` +
           `consequentStart: ${consequent.start}, consequentEnd: ${consequent.end}, ` +
           `alternateStart: ${alternate ? alternate.start : undefined}, alternateEnd: ${alternate ? alternate.end : undefined}, ` +
           `value: $0})`
@@ -51,7 +52,7 @@ export function instrumentCode(code: string): string {
         subranges: [
           {start: init.start, end: init.end},
         ],
-        replacement: `__log_VariableDeclarator_init({line: ${line}, end: ${init.end}, value: $0})`
+        replacement: `__log_VariableDeclarator_init({line: ${line}, start: ${init.start}, end: ${init.end}, value: $0})`
       });
     },
     AssignmentExpression(node) {
@@ -62,7 +63,7 @@ export function instrumentCode(code: string): string {
         subranges: [
           {start: right.start, end: right.end},
         ],
-        replacement: `__log_AssignmentExpression_right({line: ${line}, end: ${right.end}, value: $0})`
+        replacement: `__log_AssignmentExpression_right({line: ${line}, start: ${right.start}, end: ${right.end}, value: $0})`
       });
     },
     ReturnStatement(node) {
@@ -76,7 +77,7 @@ export function instrumentCode(code: string): string {
         subranges: [
           {start: argument.start, end: argument.end},
         ],
-        replacement: `__log_ReturnStatement_argument({line: ${line}, end: ${argument.end}, value: $0})`
+        replacement: `__log_ReturnStatement_argument({line: ${line}, start: ${argument.start}, end: ${argument.end}, value: $0})`
       });
     }
   });
