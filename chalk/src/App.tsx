@@ -2,7 +2,7 @@ import './App.css';
 
 import CodeMirror from './CodeMirror';
 
-import {keymap, highlightSpecialChars, drawSelection, dropCursor, WidgetType, EditorView, Decoration} from "@codemirror/view"
+import {keymap, highlightSpecialChars, drawSelection, dropCursor, WidgetType, EditorView, Decoration } from "@codemirror/view"
 import {EditorState} from "@codemirror/state"
 import {history, historyKeymap} from "@codemirror/history"
 import {foldKeymap} from "@codemirror/fold"
@@ -19,112 +19,87 @@ import {lintKeymap} from "@codemirror/lint"
 import {lineNumbers, highlightActiveLineGutter} from "@codemirror/gutter"
 import {javascript} from "@codemirror/lang-javascript"
 import { gutterRight, lineNumbersRight, GutterMarker } from './gutterRight';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Callbacks, instrumentCode } from './instrumentation';
 import { compileExpression } from './util';
 
-import { RangeSet } from "@codemirror/rangeset";
+import { Range, RangeSet } from "@codemirror/rangeset";
 
 import { parseExpressionAt } from 'acorn';
 
 
 
-class ValueWidget extends WidgetType {
-  constructor(readonly text: string) { super() }
 
-  eq(other: ValueWidget) { return other.text === this.text }
+class HTMLWidget extends WidgetType {
+  constructor(readonly html: string) { super() }
+
+  eq(other: HTMLWidget) { return other.html === this.html }
 
   toDOM() {
-    let wrap = document.createElement("span")
-    if (false) {
-      wrap.className = "cm-value-widget"
-      wrap.innerText = ` → ${this.text}`;
-    } else {
-      wrap.className = "cm-value-widget-box"
-      wrap.innerText = `${this.text}`;
-    }
-    return wrap
+    var tempDiv = document.createElement('div');
+    tempDiv.innerHTML = this.html.trim();
+
+    return tempDiv.firstElementChild as HTMLElement;
   }
-
-  ignoreEvent() { return true }
 }
 
-function valueWidgets(valueTexts: {offset: number, text: string}[]) {
-  const decorations = valueTexts.map(({offset, text}) =>
-    Decoration.widget({
-      widget: new ValueWidget(text),
-      side: 1
-    }).range(offset)
-  );
-  return EditorView.decorations.of(RangeSet.of(decorations));
+function valueWidget(text: string, offset: number) {
+  return  Decoration.widget({
+    widget: new HTMLWidget(`<span class="chalk-value">${text}</span>`),
+    side: 1
+  }).range(offset)
 }
 
-const valueWidgetsTheme = EditorView.baseTheme({
-  ".cm-value-widget": {
-    opacity: 0.5,
-  },
-  ".cm-value-widget-box": {
-    opacity: 0.5,
+function logDecoration(text: string, offset: number) {
+  return Decoration.widget({
+    widget: new HTMLWidget(`<div class="chalk-log">${text}</div>`),
+    side: 1,
+    block: true,
+  }).range(offset);
+}
+
+function errorDecoration(text: string, offset: number) {
+  return Decoration.widget({
+    widget: new HTMLWidget(`<div class="chalk-error">${text}</div>`),
+    side: 1,
+    block: true,
+  }).range(offset);
+}
+
+function fadeDecoration(start: number, end: number) {
+  return Decoration.mark({
+    class: "chalk-fade"
+  }).range(start, end)
+}
+
+const allTheme = EditorView.baseTheme({
+  ".chalk-error": {
+    backgroundColor: 'rgba(255,0,0,0.3)',
+    paddingLeft: '5px',
     fontFamily: 'sans-serif',
     fontSize: '80%',
-    border: '1px solid gray',
+  },
+  ".chalk-log": {
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    paddingLeft: '5px',
+    fontFamily: 'sans-serif',
+    fontSize: '80%',
+  },
+  ".chalk-value": {
+    opacity: 0.7,
+    background: 'gray',
+    color: 'white',
+    fontFamily: 'sans-serif',
+    fontSize: '80%',
+    borderRadius: '5px',
     marginLeft: '5px',
     paddingLeft: '5px',
     paddingRight: '5px',
   },
+  ".chalk-fade": {
+    opacity: 0.35
+  },
 });
-
-
-
-
-class ErrorWidget extends WidgetType {
-  constructor(readonly text: string) { super() }
-
-  eq(other: ValueWidget) { return other.text === this.text }
-
-  toDOM() {
-    let wrap = document.createElement("div")
-    wrap.className = "cm-error-widget"
-    wrap.innerText = `${this.text}`;
-    return wrap
-  }
-
-  ignoreEvent() { return true }
-}
-
-function errorWidgets(valueTexts: {offset: number, text: string}[]) {
-  const decorations = valueTexts.map(({offset, text}) =>
-    Decoration.widget({
-      widget: new ErrorWidget(text),
-      block: true,
-      side: 1,
-    }).range(offset)
-  );
-  return EditorView.decorations.of(RangeSet.of(decorations));
-}
-
-const errorWidgetsTheme = EditorView.baseTheme({
-  ".cm-error-widget": {
-    backgroundColor: 'rgba(255,0,0,0.3)',
-    paddingLeft: '5px',
-  }
-});
-
-function fadeMarks(ranges: {start: number, end: number}[]) {
-  const decorations = ranges.map(({start, end}) =>
-    Decoration.mark({
-      class: "cm-fade-mark"
-    }).range(start, end)
-  );
-  return EditorView.decorations.of(RangeSet.of(decorations));
-}
-
-const fadeMarksTheme = EditorView.baseTheme({
-  ".cm-fade-mark": {
-    opacity: 0.5
-  }
-});
-
 
 
 // eslint-disable-next-line new-parens
@@ -197,19 +172,19 @@ ok what instrumentation do I actually wanna do for this?
 */
 
 interface Logs {
-  values: {offset: number, text: string}[],
   margins: {line: number, text: string}[],
-  errors: {offset: number, text: string}[],
-  fades: {start: number, end: number}[],
+  decorations: Range<Decoration>[],
 }
 
-function newLogs(error?: {offset: number, text: string}): Logs {
+function newLogs(): Logs {
   return {
-    values: [], margins: [], errors: error ? [error] : [], fades: []
+    margins: [], decorations: []
   };
 }
 
 const jsonFromLocalStorage = localStorage.getItem("editor-code");
+
+type ChalkResult = {value: any} | {error: any};
 
 const input = {
   "heroX": 3,
@@ -230,130 +205,114 @@ function lineNumberFromError(e: Error): number | null {
 function App() {
   const [code, setCode] = useState(jsonFromLocalStorage || initialCode);
 
-  const cmText = useMemo(() => {
-    return EditorState.create({doc: code}).doc;
-  }, [code])
-
   const saveCode = useCallback((code: string) => {
     localStorage.setItem("editor-code", code);
     setCode(code);
   }, [])
 
-  const logsRef = useRef<Logs>(newLogs());
-  const [logs, setLogs] = useState<Logs>(newLogs());
-
-  const generated = useMemo(() => {
-    try {
-      return instrumentCode(code)
-    } catch (e) {
-      if (!(e instanceof Error)) {
-        return new Error("unknown");
-      }
-
-      const logs = newLogs({text: (e as any).message, offset: cmText.lineAt((e as any).raisedAt).to});
-      console.log('hooo', logs)
-      setLogs(logs);
-      return e;
-    }
-  }, [cmText, code]);
-
-  const parsed = useMemo(() => {
-    try {
-      return parseExpressionAt(code, 0, { ecmaVersion: 11});
-    } catch (e) {
-      return `error: ${(e as any).message}`;
-    }
+  const cmText = useMemo(() => {
+    return EditorState.create({doc: code}).doc;
   }, [code])
 
-  const compiled = useMemo(() => {
-    if (generated instanceof Error) {
-      return generated;
-    }
-    try {
-      return compileExpression(generated);
-    } catch (e) {
-      setLogs(newLogs());
-      return `compilation error: ${(e as Error).message}`
-    }
-  }, [generated])
+  const logsRef = useRef<Logs>(newLogs());
+  const [logs, setLogs] = useState<Logs>(newLogs());
+  const [result, setResult] = useState<ChalkResult>();
+
+  const [showInline, setShowInline] = useState(true);
+  const [showMargins, setShowMargins] = useState(true);
 
   const env: Callbacks = useMemo(() => {
     return {
       __log_IfStatement_test: ({line, end, value, consequentStart, consequentEnd, alternateStart, alternateEnd}) => {
         logsRef.current.margins.push({line, text: `condition is ${JSON.stringify(value)}`});
-        logsRef.current.values.push({offset: end, text: `${value}`});
+        if (showInline) {
+          logsRef.current.decorations.push(valueWidget(`${value}`, end));
+        }
         if (!value) {
-          logsRef.current.fades.push({start: consequentStart, end: consequentEnd});
+          logsRef.current.decorations.push(fadeDecoration(consequentStart, consequentEnd));
         } else {
           if (alternateStart && alternateEnd) {
-            logsRef.current.fades.push({start: alternateStart, end: alternateEnd});
+            logsRef.current.decorations.push(fadeDecoration(alternateStart, alternateEnd));
           }
         }
         return value;
       },
       __log_VariableDeclarator_init: ({line, end, value}) => {
         logsRef.current.margins.push({line, text: `= ${JSON.stringify(value)}`});
-        logsRef.current.values.push({offset: end, text: `${value}`});
+        if (showInline) {
+          logsRef.current.decorations.push(valueWidget(`${value}`, end));
+        }
         return value;
       },
       __log_AssignmentExpression_right: ({line, end, value}) => {
         logsRef.current.margins.push({line, text: `= ${JSON.stringify(value)}`});
-        logsRef.current.values.push({offset: end, text: `${value}`});
+        if (showInline) {
+          logsRef.current.decorations.push(valueWidget(`${value}`, end));
+        }
         return value;
       },
       __log_ReturnStatement_argument: ({line, end, value}) => {
         logsRef.current.margins.push({line, text: `= ${JSON.stringify(value)}`});
-        logsRef.current.values.push({offset: end, text: `${value}`});
+        if (showInline) {
+          logsRef.current.decorations.push(valueWidget(`${value}`, end));
+        }
         return value;
       },
       console: {
         log: (...vals: any[]) => {
           const text = vals.map((v) => JSON.stringify(v)).join(", ");
           const lineNum = lineNumberFromError(getErrorObject());
-          logsRef.current.errors.push({text, offset: cmText.line(lineNum!).to})
+          logsRef.current.decorations.push(logDecoration(text, cmText.line(lineNum!).to));
           console.log("log", vals, getErrorObject().stack);
         }
       }
     }
-  }, [cmText]);
+  }, [cmText, showInline]);
 
-  const f = useMemo(() => {
-    if (compiled instanceof Error) {
-      return compiled;
-    }
-    if (typeof compiled === 'string') {
-      return compiled;
-    }
-    return compiled(env);
-  }, [compiled, env])
-
-  const result = useMemo(() => {
-    if (f instanceof Error) {
-      return f;
-    }
-    try {
-      logsRef.current = newLogs()
-      const result = (f as any)(input);
+  useEffect(() => {
+    function done(result: ChalkResult) {
+      setResult(result);
       setLogs(logsRef.current);
-      return result;
+    }
+
+    logsRef.current = newLogs();
+
+    let generated: string;
+    try {
+      generated = instrumentCode(code)
+    } catch (e) {
+      logsRef.current.decorations.push(errorDecoration((e as any).message, cmText.lineAt((e as any).raisedAt).to));
+      return done({error: e});
+    }
+
+    let compiled;
+    try {
+      compiled = compileExpression(generated);
+    } catch (e) {
+      return done({error: e})
+    }
+
+    let f = compiled(env);
+
+    try {
+      const value = (f as any)(input);
+      return done({value})
     } catch (e) {
       if (!(e instanceof Error)) {
-        return `runtime error: ${e}`
+        return done({error: e})
       }
 
       const lineNum = lineNumberFromError(e);
       if (lineNum === null) {
-        return `runtime error: ${e.message}`
+        return done({error: e})
       }
 
-      setLogs(newLogs({text: e.message, offset: cmText.line(lineNum).to}));
+      logsRef.current.decorations.push(errorDecoration(e.message, cmText.line(lineNum).to));
+      setLogs(logsRef.current);
 
-      return `runtime error: ${e.message}`
+      return done({error: e})
     }
-  }, [cmText, f])
-
-  const [showInline, setShowInline] = useState(true);
-  const [showMargins, setShowMargins] = useState(true);
+  }, [cmText, code, env])
 
   return (
     <div className="App">
@@ -361,11 +320,10 @@ function App() {
       <CodeMirror
         text={code} onChange={saveCode}
         extensions={[
-          extensions, valueWidgetsTheme, errorWidgetsTheme, fadeMarksTheme,
+          extensions,
+          allTheme,
           showMargins ? specificGutterTextsRight(logs.margins) : [],
-          showInline ? valueWidgets(logs.values) : [],
-          errorWidgets(logs.errors),
-          fadeMarks(logs.fades),
+          EditorView.decorations.of(RangeSet.of(logs.decorations, true)),
         ]}
       />
       <div>
@@ -376,20 +334,12 @@ function App() {
         <input name="margins" type="checkbox" checked={showMargins} onChange={(ev) => setShowMargins(ev.target.checked)}/>
         <label htmlFor="margins">Show values in margins</label>
       </div>
-      {result instanceof Error ?
-        <pre style={{color: 'red'}}>{result.message}</pre> :
-        <pre>output = {JSON.stringify(result, null, 2)}</pre>
-      }
-      <hr/>
-      <pre>{JSON.stringify(parsed, null, 2)}</pre>
-      <hr/>
-      {/* <pre>{JSON.stringify(replaced, null, 2)}</pre> */}
-      {/* <hr/> */}
-      <pre>{typeof generated === 'string' ? generated : JSON.stringify(generated)}</pre>
-      <hr/>
-      {JSON.stringify(result, null, 2)}
-      <hr/>
-      <pre>{JSON.stringify(logs, null, 2)}</pre>
+      <div>
+        {result && ('error' in result ?
+          <pre style={{color: 'red'}}>{result.error.toString()}</pre> :
+          <pre>output = {JSON.stringify(result.value, null, 2)}</pre>
+        )}
+      </div>
     </div>
   );
 }
