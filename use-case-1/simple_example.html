@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <head>
+  <script src="liveEditorTool.js"></script>
 </head>
 <body>
   What's your name?
@@ -9,12 +10,13 @@
   Your name is <span id="nameUpper"></span>.
 
   <script type="module">
-    import { editorWithTestCasesTool } from './editorWithTestCasesTool.js'
-
     var nameEl = document.querySelector('#name')
 
     nameEl.oninput = function () {
-      var uppercaseName = editorWithTestCasesTool({ input: nameEl.value, showTool: true })
+      var uppercaseName = liveEditorTool({
+        input: nameEl.value,
+        showTool: true
+      })
       document.querySelector('#nameUpper').textContent = uppercaseName
     }
   </script>

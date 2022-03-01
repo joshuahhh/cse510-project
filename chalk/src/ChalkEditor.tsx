@@ -117,7 +117,7 @@ const allTheme = EditorView.baseTheme({
     opacity: 2,
   },
   ".chalk-underline": {
-    borderBottom: '1.5px solid rgba(128, 0, 128, 0.7)',
+    borderBottom: '1px solid rgba(128, 0, 128, 0.7)',
   },
 });
 
@@ -185,9 +185,10 @@ export interface ChalkEditorProps {
   setCode: Dispatch<string>;
   reportResult?: (result: ChalkResult) => void;
   showValues: boolean;
+  showErrors: boolean;
 }
 
-function ChalkEditor({code, input, setCode, reportResult, showValues}: ChalkEditorProps) {
+function ChalkEditor({code, input, setCode, reportResult, showValues, showErrors}: ChalkEditorProps) {
   const cmText = useMemo(() => {
     return EditorState.create({doc: code}).doc;
   }, [code])
@@ -247,9 +248,6 @@ function ChalkEditor({code, input, setCode, reportResult, showValues}: ChalkEdit
           console.log(...vals);
         }
       }
-      // TODO: ternary operators
-      // TODO: debouncing (hide & show annotations)
-      // TODO: errors on side
     }
   }, [cmText, showValues]);
 
@@ -266,7 +264,9 @@ function ChalkEditor({code, input, setCode, reportResult, showValues}: ChalkEdit
     try {
       generated = instrumentCode(code)
     } catch (e) {
-      logsRef.current.decorations.push(errorDecoration(`parse: ${(e as any).message}`, cmText.lineAt((e as any).raisedAt).to));
+      if (showErrors) {
+        logsRef.current.decorations.push(errorDecoration(`parse: ${(e as any).message}`, cmText.lineAt((e as any).raisedAt).to));
+      }
       return done({error: e});
     }
 
@@ -292,12 +292,13 @@ function ChalkEditor({code, input, setCode, reportResult, showValues}: ChalkEdit
         return done({error: e})
       }
 
-      logsRef.current.decorations.push(errorDecoration(`runtime: ${e.message}`, cmText.line(lineNum).to));
-      setLogs(logsRef.current);
+      if (showErrors) {
+        logsRef.current.decorations.push(errorDecoration(`runtime: ${e.message}`, cmText.line(lineNum).to));
+      }
 
       return done({error: e})
     }
-  }, [cmText, code, env, input, reportResult])
+  }, [cmText, code, env, input, reportResult, showErrors])
 
   return <CodeMirror
     text={code} onChange={setCode}

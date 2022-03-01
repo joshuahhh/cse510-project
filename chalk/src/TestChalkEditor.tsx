@@ -40,6 +40,7 @@ function TestChalkEditor() {
         input={input}
         reportResult={setResult}
         showValues={showValues}
+        showErrors={true}
       />
       <div>
         <input name="inline" type="checkbox" checked={showValues} onChange={(ev) => setShowValues(ev.target.checked)}/>

@@ -5,21 +5,12 @@ import { generate } from 'astring'
 
 import * as est from 'estree';
 
-function isIfStatement(node: any): node is est.IfStatement & AcornNode {
-  return node.type === 'IfStatement';
-}
-function isCallExpression(node: any): node is est.CallExpression & AcornNode {
-  return node.type === 'CallExpression';
-}
-function isVariableDeclarator(node: any): node is est.VariableDeclarator & AcornNode {
-  return node.type === 'VariableDeclarator';
-}
-function isAssignmentExpression(node: any): node is est.AssignmentExpression & AcornNode {
-  return node.type === 'AssignmentExpression';
-}
-function isReturnStatement(node: any): node is est.ReturnStatement & AcornNode {
-  return node.type === 'ReturnStatement';
-}
+function isIfStatement(node: any): node is est.IfStatement & AcornNode { return node.type === 'IfStatement'; }
+function isCallExpression(node: any): node is est.CallExpression & AcornNode { return node.type === 'CallExpression'; }
+function isVariableDeclarator(node: any): node is est.VariableDeclarator & AcornNode { return node.type === 'VariableDeclarator'; }
+function isAssignmentExpression(node: any): node is est.AssignmentExpression & AcornNode { return node.type === 'AssignmentExpression'; }
+function isReturnStatement(node: any): node is est.ReturnStatement & AcornNode { return node.type === 'ReturnStatement'; }
+function isConditionalExpression(node: any): node is est.ConditionalExpression & AcornNode { return node.type === 'ConditionalExpression'; }
 
 function start(node: est.Node): number;
 function start(node?: est.Node): number | undefined;
@@ -70,7 +61,7 @@ function nodeInfo(node: est.Node) {
 export const walk = (node: any): unknown => {
   if (!node) return node;
 
-  if (isIfStatement(node)) {
+  if (isIfStatement(node) || isConditionalExpression(node)) {
     const test = node.test;
     const consequent = node.consequent;
     const alternate = node.alternate || undefined;
@@ -79,7 +70,7 @@ export const walk = (node: any): unknown => {
       consequentStart: start(consequent), consequentEnd: end(consequent),
       alternateStart: start(alternate), alternateEnd: end(alternate),
     });
-    const newNode: est.IfStatement = {...node, test: parseCallExpression(`__inst_IfStatement_test(${info})`, test)};
+    const newNode: est.IfStatement | est.ConditionalExpression = {...node, test: parseCallExpression(`__inst_IfStatement_test(${info})`, test)};
     node = newNode
   } else if (isVariableDeclarator(node)) {
     const init = node.init;

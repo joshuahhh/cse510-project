@@ -70,7 +70,6 @@ function update() {
         update();
       }}
       input={globalState.input}
-      showValues={true}
     />, globalState.mountingLocation)
   } else {
     // TODO: what if it's not mounted yet?
