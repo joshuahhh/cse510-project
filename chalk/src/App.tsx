@@ -52,17 +52,15 @@ function valueWidget(text: string, offset: number) {
 
 function logDecoration(text: string, offset: number) {
   return Decoration.widget({
-    widget: new HTMLWidget(`<div class="chalk-log">${text}</div>`),
+    widget: new HTMLWidget(`<span class="chalk-log">${text}</span>`),
     side: 1,
-    block: true,
   }).range(offset);
 }
 
 function errorDecoration(text: string, offset: number) {
   return Decoration.widget({
-    widget: new HTMLWidget(`<div class="chalk-error">${text}</div>`),
+    widget: new HTMLWidget(`<span class="chalk-error">${text}</span>`),
     side: 1,
-    block: true,
   }).range(offset);
 }
 
@@ -81,15 +79,24 @@ function fadeDecoration(start: number, end: number) {
 const allTheme = EditorView.baseTheme({
   ".chalk-error": {
     backgroundColor: 'rgba(255,0,0,0.3)',
-    paddingLeft: '5px',
+    color: 'rgba(0,0,0,0.8)',
     fontFamily: 'sans-serif',
     fontSize: '80%',
+    borderRadius: '5px',
+    marginLeft: '15px',
+    paddingLeft: '5px',
+    paddingRight: '5px',
+    border: '1px solid rgba(255,0,0,1)',
   },
   ".chalk-log": {
     backgroundColor: 'rgba(0,0,0,0.1)',
-    paddingLeft: '5px',
+    color: 'rgba(0,0,0,0.8)',
     fontFamily: 'sans-serif',
     fontSize: '80%',
+    borderRadius: '5px',
+    marginLeft: '15px',
+    paddingLeft: '5px',
+    paddingRight: '5px',
   },
   ".chalk-value": {
     background:  'rgba(128, 0, 128, 0.7)',
@@ -209,8 +216,16 @@ function getErrorObject(): Error {
 }
 
 function lineNumberFromError(e: Error): number | null {
-  const match: [string, string, string] | null = (e as any).stack.match(/<anonymous>:(\d*):(\d*)/);
-  return match && (+match[1] - 2);  // TODO: idk what the 2 is for
+  const matchChrome: [string, string, string] | null = (e as any).stack.match(/<anonymous>:(\d*):(\d*)/m);
+  if (matchChrome) {
+    return +matchChrome[1] - 2;  // TODO: idk what the 2 is for lol
+  }
+  const matchFirefox: [string, string, string] | null = (e as any).stack.match(/^anonymous\/.* Function:(\d*):(\d*)/m);
+  console.log("saf", matchFirefox);
+  if (matchFirefox) {
+    return +matchFirefox[1] - 2;  // TODO: idk what the 2 is for lol
+  }
+  return null;
 }
 
 function App() {
@@ -278,7 +293,7 @@ function App() {
           const text = vals.map((v) => JSON.stringify(v)).join(", ");
           const lineNum = lineNumberFromError(getErrorObject());
           logsRef.current.decorations.push(logDecoration(text, cmText.line(lineNum!).to));
-          console.log("log", vals, getErrorObject().stack);
+          console.log(...vals);
         }
       }
       // TODO: ternary operators
@@ -322,6 +337,9 @@ function App() {
       const value = (f as any)(input);
       return done({value})
     } catch (e) {
+      // runtime error
+      (window as any).e = e;
+
       if (!(e instanceof Error)) {
         return done({error: e})
       }
